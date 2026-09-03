@@ -107,7 +107,10 @@ export default function Catalogue() {
             const catName = displayCategoryName(cats.find(c => c.id === p.category_id)?.name ?? 'Uncategorized')
             return (
               <Link key={p.id} to={`/product/${p.id}`} className="bg-white border border-zinc-200 rounded-2xl p-4 hover:border-zinc-300 flex flex-col gap-2">
-                <div className="text-xs text-zinc-500 uppercase tracking-wide">{catName} · {p.product_type === 'variable' ? 'Variable' : 'Simple'}</div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-md flex items-center justify-center text-xs font-bold {" + (catName.startsWith('S') ? 'bg-red-100 text-red-600' : catName.startsWith('L') ? 'bg-blue-100 text-blue-600' : catName.startsWith('A') ? 'bg-green-100 text-green-600' : catName.startsWith('H') ? 'bg-orange-100 text-orange-700' : 'bg-zinc-200 text-zinc-400') + "}>" + (catName.charAt(0).toUpperCase()) + "</div>
+                  <span className="text-xs text-zinc-500 uppercase tracking-wide">{catName}</span>
+                </div>
                 <div className="font-semibold line-clamp-2">{p.name}</div>
                 <div className="text-sm font-bold">
                   {hasPrice ? `GH₵ ${displayPrice}` : <span className="text-zinc-400 font-normal text-xs">Price not set</span>}

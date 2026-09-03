@@ -65,7 +65,9 @@ export default function Register() {
             // If insert fails due to RLS or trigger race, warn but don't use service role
             console.warn('[register] profile insert failed', insertErr.message)
             setInfo('Account created, but profile setup needs admin trigger. Please contact support if login fails. (Do not retry with service key)')
-            // Still allow login — trigger may have created it
+            // Do NOT redirect to /account — profile may not exist yet. Stay on this page with the info message.
+            // The trigger may create it later, or user can log in after email confirmation.
+            return
           }
           // Also try customer_profiles if needed — check if table requires row
           try {
