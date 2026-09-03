@@ -7,10 +7,8 @@ export default function Footer() {
         <div className="col-span-2">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-[#F2720E] grid place-items-center text-white font-bold text-sm">C</div>
-            <span className="font-bold text-white">Cartiva 2.0</span>
-            <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full">Storefront</span>
+            <span className="font-bold text-white">Cartiva</span>
           </div>
-          <p className="text-sm text-zinc-400 max-w-[280px] leading-relaxed">Modern tech e-commerce for Ghana — smartphones, laptops, audio & home appliances, delivered fast and securely.</p>
         </div>
         <div>
           <h4 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">Shop</h4>
