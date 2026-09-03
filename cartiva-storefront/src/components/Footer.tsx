@@ -1,54 +1,108 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 export default function Footer() {
+  const navigate = useNavigate()
+
+  const shopLinks = [
+    { label: 'Shop all', action: () => navigate('/catalogue') },
+    { label: 'New arrivals', action: () => navigate('/catalogue') },
+    { label: 'Popular products', action: () => navigate('/catalogue') },
+    { label: 'Categories', action: () => navigate('/catalogue') },
+  ]
+
+  const customerLinks = [
+    { label: 'My account', action: () => navigate('/account') },
+    { label: 'My orders', action: () => navigate('/orders') },
+    { label: 'Order tracking', action: () => navigate('/orders') },
+    { label: 'Wishlist', action: () => navigate('/cart') },
+    { label: 'Cart', action: () => navigate('/cart') },
+    { label: 'Reviews', action: () => navigate('/account') },
+  ]
+
+  const supportLinks = [
+    { label: 'Help & support', action: () => {} },
+    { label: 'Contact us', action: () => {} },
+    { label: 'FAQs', action: () => {} },
+    { label: 'Delivery information', action: () => {} },
+    { label: 'Payment information', action: () => {} },
+    { label: 'Returns & refunds', action: () => {} },
+  ]
+
+  const legalLinks = [
+    { label: 'Privacy policy', action: () => {} },
+    { label: 'Terms & conditions', action: () => {} },
+  ]
+
   return (
     <footer className="site-footer">
-      <div class="footer-inner">
-        <div class="footer-top">
-          <div class="footer-col footer-brand">
-            <div class="brand">
-              <img src="/logo.svg" alt="Cartiva" style="height:26px;width:auto;display:block;" />
-              <span class="footer-wordmark">Cartiva</span>
+      <div className="footer-inner">
+        <div className="footer-top">
+          <div className="footer-col footer-brand">
+            <div className="brand">
+              <div className="w-8 h-8 rounded-[9px] bg-primary flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>C</div>
+              <span className="footer-wordmark">Cartiva</span>
             </div>
             <p>Everything for campus life, delivered to your hall.</p>
             <p>Cartiva makes everyday shopping convenient for university students and young customers — from lecture-hall essentials to hostel upgrades, ordered in a few taps and delivered where you live.</p>
-            <div class="footer-social">
-              <button title="Facebook — placeholder" onClick={() => alert('Facebook')}>f</button>
-              <button title="Instagram — placeholder" onClick={() => alert('Instagram')}>ig</button>
-              <button title="X (Twitter) — placeholder" onClick={() => alert('X')}>x</button>
-              <button title="TikTok — placeholder" onClick={() => alert('TikTok')}>tt</button>
+            <div className="footer-social">
+              <button title="Facebook">f</button>
+              <button title="Instagram">ig</button>
+              <button title="X (Twitter)">x</button>
+              <button title="TikTok">tt</button>
             </div>
-            <div class="footer-contact-note">hello@cartiva.example (placeholder — add real contact details)</div>
+            <div className="footer-contact-note">hello@cartiva.example (placeholder — add real contact details)</div>
           </div>
-          <div class="footer-col">
-            <h4 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">Shop</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/catalogue" className="hover:text-white">Smartphones</Link></li>
-              <li><Link to="/catalogue" className="hover:text-white">Laptops</Link></li>
-              <li><Link to="/catalogue" className="hover:text-white">Audio & Wearables</Link></li>
-              <li><Link to="/catalogue" className="hover:text-white">Accessories</Link></li>
-              <li><Link to="/catalogue" className="hover:text-white">Home Appliances</Link></li>
+
+          <div className="footer-col">
+            <h4>Shop</h4>
+            <ul>
+              {shopLinks.map(l => (
+                <li key={l.label}>
+                  <button className="footer-link" onClick={l.action}>{l.label}</button>
+                </li>
+              ))}
             </ul>
           </div>
-          <div class="footer-col">
-            <h4 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">Account</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/account" className="hover:text-white">My account</Link></li>
-              <li><Link to="/orders" className="hover:text-white">Orders</Link></li>
+
+          <div className="footer-col">
+            <h4>Customer</h4>
+            <ul>
+              {customerLinks.map(l => (
+                <li key={l.label}>
+                  <button className="footer-link" onClick={l.action}>{l.label}</button>
+                </li>
+              ))}
             </ul>
           </div>
-          <div class="footer-col">
-            <h4 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">Help</h4>
-            <ul className="space-y-2 text-sm">
-              <li><span className="text-zinc-500">Support — coming soon</span></li>
+
+          <div className="footer-col">
+            <h4>Support</h4>
+            <ul>
+              {supportLinks.map(l => (
+                <li key={l.label}>
+                  <button className="footer-link" onClick={l.action}>{l.label}</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="footer-col">
+            <h4>Legal</h4>
+            <ul>
+              {legalLinks.map(l => (
+                <li key={l.label}>
+                  <button className="footer-link" onClick={l.action}>{l.label}</button>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-        <div class="footer-bottom">
+
+        <div className="footer-bottom">
           <div>© 2026 Cartiva. All rights reserved.</div>
-          <div class="footer-bottom-links">
-            <button className="background: none; border: none; padding: 0; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: color .12s ease;" onClick={() => alert('Privacy policy')}>Privacy policy</button>
-            <button className="background: none; border: none; padding: 0; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: color .12s ease;" onClick={() => alert('Terms & conditions')}>Terms & conditions</button>
+          <div className="footer-bottom-links">
+            <button onClick={() => {}}>Privacy policy</button>
+            <button onClick={() => {}}>Terms & conditions</button>
           </div>
         </div>
       </div>

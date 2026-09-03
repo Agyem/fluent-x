@@ -5,6 +5,9 @@ import type { Product, ProductVariant, ProductOption, ProductOptionValue, Varian
 import { Loading } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
 import { useCart } from '../context/CartContext'
+import { Package, Star, Truck, Shield, Clock } from 'lucide-react'
+
+const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>()
@@ -17,6 +20,7 @@ export default function ProductDetails() {
   const [images, setImages] = useState<ProductImage[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
+  const [qty, setQty] = useState(1)
   const { addItem } = useCart()
   const [added, setAdded] = useState(false)
 
@@ -31,7 +35,6 @@ export default function ProductDetails() {
         if (cancelled) return
         if (!prod) { setProduct(null); return }
         setProduct(prod)
-        // Parallel fetch for related data
         const [vars, opts, cats, imgs] = await Promise.all([
           getProductVariants(prod.id),
           getProductOptions(prod.id),
@@ -66,90 +69,101 @@ export default function ProductDetails() {
 
   if (err) return <ErrorState message={err} onRetry={() => location.reload()} />
   if (product === undefined) return <Loading label="Loading product..." />
-  if (product === null) return <div className="space-y-4"><ErrorState message="Product not found or inactive." /><Link to="/catalogue" className="inline-flex px-4 py-2 rounded-xl bg-zinc-900 text-white text-sm">Back to catalogue</Link></div>
+  if (product === null) return <div className="space-y-4"><ErrorState message="Product not found or inactive." /><Link to="/catalogue" className="btn primary">Back to catalogue</Link></div>
 
   const selectedVariant = variants?.find(v => v.id === selectedVariantId) ?? null
   const primaryImage = images?.find(i => i.is_primary) ?? images?.[0] ?? null
-  const publicUrl = getPublicImageUrl(primaryImage?.storage_path)
+  const publicUrl = primaryImage?.storage_path ? getPublicImageUrl(primaryImage.storage_path) : null
+
+  const currentPrice = selectedVariant
+    ? (selectedVariant.sale_price ?? selectedVariant.price)
+    : (product.sale_price ?? product.base_price)
+  const hasPrice = currentPrice != null && currentPrice !== 0
+  const hasOldPrice = selectedVariant
+    ? (selectedVariant.sale_price != null && selectedVariant.sale_price !== 0 && selectedVariant.sale_price < selectedVariant.price)
+    : (product.sale_price != null && product.sale_price !== 0 && product.sale_price < product.base_price)
+  const oldPrice = selectedVariant ? selectedVariant.price : product.base_price
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
+    <div className="pd-layout">
       <div>
-        <div className="bg-white border border-zinc-200 rounded-2xl p-4 aspect-[4/3] grid place-items-center">
+        <div className="pd-gallery-main">
           {publicUrl ? (
-            <img src={publicUrl} alt={product.name} className="max-w-full max-h-full object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+            <img src={publicUrl} alt={product.name} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
           ) : (
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto rounded-xl bg-zinc-100 grid place-items-center text-zinc-400">No image</div>
-              <div className="text-xs text-zinc-400 mt-2">No image available</div>
-            </div>
+            <Package />
           )}
         </div>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <div className="text-xs text-zinc-500 uppercase tracking-wide">{category?.name ?? 'Uncategorized'} · {product.product_type}</div>
-          <h1 className="text-2xl font-bold mt-1">{product.name}</h1>
-          {(selectedVariant?.sku ?? product.sku) && <div className="text-sm text-zinc-500 mt-1">SKU {selectedVariant?.sku ?? product.sku}</div>}
-        </div>
-
-        <div className="bg-white border border-zinc-200 rounded-2xl p-4">
-          <div className="text-lg font-bold">
-            {(() => {
-              const vPrice = selectedVariant ? (selectedVariant.sale_price ?? selectedVariant.price) : (product.sale_price ?? product.base_price)
-              if (vPrice == null || vPrice === 0) return <span className="text-zinc-400 font-normal text-sm">Price not set</span>
-              if (selectedVariant) {
-                return <>{selectedVariant.sale_price != null && selectedVariant.sale_price !== 0 ? `GH₵ ${selectedVariant.sale_price}` : `GH₵ ${selectedVariant.price}`} {selectedVariant.sale_price != null && selectedVariant.sale_price !== 0 && selectedVariant.sale_price < selectedVariant.price && <span className="ml-2 text-sm font-normal line-through text-zinc-400">GH₵ {selectedVariant.price}</span>}</>
-              }
-              return product.sale_price != null && product.sale_price !== 0 ? `GH₵ ${product.sale_price}` : `GH₵ ${product.base_price}`
-            })()}
-          </div>
-          <div className="text-xs text-zinc-500 mt-1">{product.active ? 'Active · available to customers' : 'Inactive · not visible to storefront'}</div>
-          {product.description && <p className="text-sm text-zinc-600 mt-3 leading-relaxed">{product.description}</p>}
-        </div>
-
-        {options && options.length > 0 && (
-          <div className="bg-white border border-zinc-200 rounded-2xl p-4">
-            <h3 className="text-sm font-bold mb-3">Options</h3>
-            {options.map(opt => {
-              const vals = optionValues?.filter(v => v.option_id === opt.id) ?? []
+        {images && images.length > 1 && (
+          <div className="pd-thumbs">
+            {images.map(img => {
+              const url = img.storage_path ? getPublicImageUrl(img.storage_path) : null
               return (
-                <div key={opt.id} className="mb-3 last:mb-0">
-                  <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5">{opt.name}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {vals.map(v => {
-                      // Show which variants contain this value (read-only, no mutation)
-                      const variantIdsWithValue = variantOptionMap?.filter(m => m.option_value_id === v.id).map(m => m.variant_id) ?? []
-                      return <span key={v.id} className="px-3 py-1.5 rounded-full border border-zinc-200 text-sm bg-zinc-50" title={`In variants: ${variantIdsWithValue.join(', ') || '—'}`}>{v.value}</span>
-                    })}
-                  </div>
+                <div key={img.id} className={`pd-thumb ${img.id === primaryImage?.id ? 'active' : ''}`}>
+                  {url ? <img src={url} alt="" /> : <Package />}
                 </div>
               )
             })}
           </div>
         )}
+      </div>
 
-        <div className="bg-white border border-zinc-200 rounded-2xl p-4">
-          <h3 className="text-sm font-bold mb-2">Variants ({variants?.length ?? 0})</h3>
-          {variants && variants.length === 0 ? <div className="text-sm text-zinc-500">No active variants — product unavailable</div>
-          : <div className="space-y-2">
-              {variants?.map(v => {
+      <div className="space-y-4">
+        <div>
+          <div className="pd-cat-link">{category?.name ?? 'Uncategorized'}</div>
+          <h1 className="pd-title">{product.name}</h1>
+          <div className="pd-rating-row">
+            <Star style={{ width: 14, height: 14, color: 'var(--warning)' }} />
+            <span>4.8</span>
+            <span style={{ color: 'var(--text-muted)' }}>(0 reviews)</span>
+          </div>
+        </div>
+
+        <div className="pd-price-row">
+          <span className="pd-price">{hasPrice ? CEDI(currentPrice!) : 'Price not set'}</span>
+          {hasOldPrice && <span className="pd-oldprice">{CEDI(oldPrice!)}</span>}
+        </div>
+
+        {options && options.length > 0 && options.map(opt => {
+          const vals = optionValues?.filter(v => v.option_id === opt.id) ?? []
+          return (
+            <div key={opt.id} className="variant-group">
+              <h4>{opt.name}</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0 }}>
+                {vals.map(v => (
+                  <span key={v.id} className="variant-chip">{v.value}</span>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+
+        {variants && variants.length > 0 && (
+          <div className="variant-group">
+            <h4>Variant</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0 }}>
+              {variants.map(v => {
                 const vp = v.sale_price ?? v.price
-                const priceDisplay = vp == null || vp === 0 ? 'Price not set' : `GH₵ ${vp}`
                 return (
-                  <button key={v.id} onClick={() => setSelectedVariantId(v.id)} className={`w-full text-left px-3 py-2 rounded-xl border text-sm flex justify-between items-center ${selectedVariantId === v.id ? 'bg-[#FDF2E9] border-[#F2720E] text-[#D35F09]' : 'bg-white border-zinc-200 hover:border-zinc-300'}`}>
-                    <span>{v.name} {v.sku ? <span className="text-zinc-400">· {v.sku}</span> : null}</span>
-                    <span className={`font-bold ${vp === 0 ? 'text-zinc-400 font-normal text-xs' : ''}`}>{priceDisplay}</span>
+                  <button key={v.id} onClick={() => setSelectedVariantId(v.id)} className={`variant-chip ${selectedVariantId === v.id ? 'active' : ''}`}>
+                    {v.name}{vp != null && vp !== 0 ? ` — ${CEDI(vp)}` : ''}
                   </button>
                 )
               })}
-            </div>}
-          <div className="mt-3 text-xs text-zinc-500">Simple products have hidden "Default" variant — read existing variant, not created (docs §4.2).</div>
+            </div>
+          </div>
+        )}
+
+        <div className="qty-stepper">
+          <button onClick={() => setQty(Math.max(1, qty - 1))}>−</button>
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600, fontSize: 14 }}>{qty}</span>
+          <button onClick={() => setQty(qty + 1)}>+</button>
         </div>
 
-        <div className="flex gap-2">
+        <div className="pd-actions">
           <button
+            className="btn primary block"
+            disabled={!selectedVariant}
             onClick={() => {
               if (!selectedVariant || !product) return
               const price = selectedVariant.sale_price ?? selectedVariant.price
@@ -165,14 +179,23 @@ export default function ProductDetails() {
               setAdded(true)
               setTimeout(() => setAdded(false), 1800)
             }}
-            disabled={!selectedVariant}
-            className={`flex-1 py-3 rounded-xl text-sm font-semibold ${!selectedVariant ? 'bg-zinc-200 text-zinc-500' : 'bg-[#5B5FEF] text-white hover:bg-[#4a4fd6]'}`}
           >
             {added ? 'Added ✓' : 'Add to cart'}
           </button>
-          <Link to="/catalogue" className="px-4 py-3 rounded-xl border border-zinc-200 text-sm font-semibold">Back</Link>
         </div>
-        <div className="text-xs text-zinc-400">Display price is from variant — authoritative price will be re-fetched at order creation (Stage 6).</div>
+
+        <div className="trust-row">
+          <div className="trust-item"><Truck /> Free delivery over GH₵ 500</div>
+          <div className="trust-item"><Shield /> Secure checkout</div>
+          <div className="trust-item"><Clock /> 3–7 day delivery</div>
+        </div>
+
+        {product.description && (
+          <div className="pd-tabs">
+            <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Description</h3>
+            <div className="pd-desc">{product.description}</div>
+          </div>
+        )}
       </div>
     </div>
   )

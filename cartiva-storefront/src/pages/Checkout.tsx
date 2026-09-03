@@ -6,11 +6,13 @@ import { useCart } from '../context/CartContext'
 import Placeholder from '../components/Placeholder'
 import { MOMO_CONFIG, isMomoConfigured } from '../lib/momoConfig'
 import { SHIPPING_OPTIONS, getShippingFee, getExpectedDeliveryDate, type ShippingMethod } from '../lib/shipping'
+import { Package, Truck, CreditCard, CheckCircle } from 'lucide-react'
 
 export default function Checkout() {
   const { user, profile } = useAuth()
   const { items, subtotal: displaySubtotal, clear } = useCart()
   const navigate = useNavigate()
+  const [step, setStep] = useState(1)
   const [paymentMethod, setPaymentMethod] = useState<'momo' | ''>('')
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod | ''>('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
@@ -18,7 +20,6 @@ export default function Checkout() {
   const [error, setError] = useState<string | null>(null)
   const [hasClaimedPayment, setHasClaimedPayment] = useState(false)
 
-  // Load delivery address from customer_profiles if available
   useEffect(() => {
     if (!user) return
     supabase.from('customer_profiles').select('delivery_address').eq('profile_id', user.id).single().then(({ data }) => {
@@ -28,12 +29,13 @@ export default function Checkout() {
 
   if (!user) {
     return (
-      <div className="max-w-xl mx-auto bg-white border border-zinc-200 rounded-2xl p-6 text-center">
-        <h1 className="text-lg font-bold">Checkout</h1>
-        <p className="text-sm text-zinc-500 mt-2">Please log in to checkout. After login you’ll be returned to checkout.</p>
-        <div className="mt-4 flex gap-2 justify-center">
-          <Link to="/login" state={{ from: '/checkout' }} className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-sm">Log in</Link>
-          <Link to="/register" className="px-4 py-2 rounded-xl border border-zinc-200 text-sm">Create account</Link>
+      <div style={{ maxWidth: 440, margin: '0 auto', textAlign: 'center', padding: '50px 20px' }}>
+        <div className="confirm-icon"><Package /></div>
+        <h1 style={{ fontSize: 18, fontWeight: 700 }}>Checkout</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 8 }}>Please log in to checkout.</p>
+        <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <Link to="/login" state={{ from: '/checkout' }} className="btn primary">Log in</Link>
+          <Link to="/register" className="btn">Create account</Link>
         </div>
       </div>
     )
@@ -41,15 +43,14 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-xl mx-auto">
-        <Placeholder title="Checkout — cart empty" desc="Add items to your cart before checking out." />
-        <Link to="/catalogue" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-zinc-900 text-white text-sm">Browse catalogue</Link>
+      <div style={{ maxWidth: 440, margin: '0 auto' }}>
+        <Placeholder title="Cart empty" desc="Add items to your cart before checking out." />
+        <Link to="/catalogue" className="btn primary" style={{ marginTop: 16 }}>Browse catalogue</Link>
       </div>
     )
   }
 
   const shippingFee = shippingMethod ? getShippingFee(shippingMethod as ShippingMethod) : 0
-  const authoritativeSubtotalNote = "Authoritative subtotal will be recalculated from DB prices on Place Order"
 
   const handlePlaceOrder = async () => {
     setError(null)
@@ -59,7 +60,6 @@ export default function Checkout() {
 
     setPlacing(true)
     try {
-      // 1. Authoritative re-fetch — NOT trust localStorage prices
       type ValidatedItem = { variant_id: string; product_id: string; quantity: number; unit_price: number }
       const validated: ValidatedItem[] = []
       let authoritativeSubtotal = 0
@@ -70,8 +70,8 @@ export default function Checkout() {
         const { data: product, error: pErr } = await supabase.from('products').select('id, active').eq('id', variant.product_id).eq('active', true).single()
         if (pErr || !product) throw new Error(`Product unavailable: ${cartItem.product_name} is no longer active`)
         const { data: inv, error: invErr } = await supabase.from('inventory').select('available').eq('variant_id', variant.id).single()
-        if (invErr || inv == null) throw new Error(`Inventory data missing for ${cartItem.product_name} — ${cartItem.variant_name ?? ''}`)
-        if (inv.available < cartItem.quantity) throw new Error(`Insufficient stock for ${cartItem.product_name} — ${cartItem.variant_name ?? ''}: requested ${cartItem.quantity}, available ${inv.available}`)
+        if (invErr || inv == null) throw new Error(`Inventory data missing for ${cartItem.product_name}`)
+        if (inv.available < cartItem.quantity) throw new Error(`Insufficient stock for ${cartItem.product_name}: requested ${cartItem.quantity}, available ${inv.available}`)
         const authoritativePrice = variant.sale_price ?? variant.price
         if (authoritativePrice == null) throw new Error(`Price missing for ${cartItem.product_name}`)
         validated.push({ variant_id: variant.id, product_id: variant.product_id, quantity: cartItem.quantity, unit_price: authoritativePrice })
@@ -81,7 +81,6 @@ export default function Checkout() {
       const fee = getShippingFee(shippingMethod as ShippingMethod)
       const finalTotal = authoritativeSubtotal + fee
 
-      // 2. Create orders row — customer_id from auth, total includes shipping
       const { data: order, error: oErr } = await supabase.from('orders').insert({
         customer_id: user.id,
         status: 'pending',
@@ -89,7 +88,6 @@ export default function Checkout() {
       }).select('id, order_number').single()
       if (oErr || !order) throw new Error(oErr?.message ?? 'Failed to create order')
 
-      // 3. Create order_items with authoritative unit_price
       const itemsToInsert = validated.map(v => ({
         order_id: order.id,
         product_id: v.product_id,
@@ -98,27 +96,17 @@ export default function Checkout() {
         unit_price: v.unit_price,
       }))
       const { error: itemsErr } = await supabase.from('order_items').insert(itemsToInsert)
-      if (itemsErr) throw new Error(`Order created (${order.order_number}) but items failed: ${itemsErr.message} — contact support`)
+      if (itemsErr) throw new Error(`Order created (${order.order_number}) but items failed: ${itemsErr.message}`)
 
-      // 4. Create deliveries row — persists shipping/delivery info using EXISTING schema
-      // deliveries: method, expected_delivery_date, delivery_address, status
       const expectedDate = getExpectedDeliveryDate(shippingMethod as ShippingMethod)
       const { error: delErr } = await supabase.from('deliveries').insert({
         order_id: order.id,
-        method: shippingMethod, // 'air' or 'sea' — existing column `method`
+        method: shippingMethod,
         expected_delivery_date: expectedDate,
         delivery_address: deliveryAddress.trim(),
         status: 'pending',
       })
-      if (delErr) {
-        // Do not fail order if delivery insert blocked (RLS may still be staff-only) — report but keep order
-        console.warn('[checkout] deliveries insert failed (RLS may block customers):', delErr.message)
-        // We do not throw here — order and items are already created, delivery is supplementary
-        // The fee is still in total_amount, and method can be derived from order if needed
-      }
-
-      // Do NOT create payment record — manual MoMo stays pending
-      // Do NOT deduct inventory
+      if (delErr) console.warn('[checkout] deliveries insert failed:', delErr.message)
 
       clear()
       navigate(`/orders/${order.id}`, { state: { justCreated: true, shippingMethod, fee, finalTotal } })
@@ -132,99 +120,114 @@ export default function Checkout() {
   const selectedShipping = shippingMethod ? SHIPPING_OPTIONS[shippingMethod as ShippingMethod] : null
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="text-xl font-bold">Checkout</h1>
+    <div style={{ maxWidth: 700, margin: '0 auto' }}>
+      <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 23, fontWeight: 700, marginBottom: 20 }}>Checkout</h1>
 
-      <div className="bg-white border border-zinc-200 rounded-2xl p-4">
-        <h3 className="text-sm font-bold">Account</h3>
-        <div className="text-sm mt-2">{profile?.full_name ?? user.email} <span className="text-zinc-500">· {profile?.email ?? user.email}</span></div>
-      </div>
-
-      <div className="bg-white border border-zinc-200 rounded-2xl p-4">
-        <h3 className="text-sm font-bold">Delivery address</h3>
-        <input value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} placeholder="Enter delivery address (e.g. UCC Main Campus, Hall...)" className="mt-2 w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-zinc-300" />
-        <div className="text-xs text-zinc-400 mt-1">Belongs only to you — from <code>customer_profiles.delivery_address</code> if available, otherwise enter here. RLS ensures only your address.</div>
-      </div>
-
-      <div className="bg-white border border-zinc-200 rounded-2xl p-4">
-        <h3 className="text-sm font-bold">Review items ({items.length})</h3>
-        <ul className="mt-3 space-y-2 text-sm">
-          {items.map(i => (
-            <li key={i.variant_id} className="flex justify-between border-b border-zinc-100 py-2">
-              <span>{i.product_name} — {i.variant_name ?? 'Default'} ×{i.quantity}</span>
-              <span className="font-mono">GH₵ {(i.unit_price * i.quantity).toFixed(2)} <span className="text-xs text-zinc-400">(display)</span></span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-3 space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-zinc-500">Subtotal (display)</span><span className="font-mono">GH₵ {displaySubtotal.toFixed(2)}</span></div>
-          <div className="flex justify-between"><span className="text-zinc-500">Shipping {selectedShipping ? `(${selectedShipping.label})` : ''}</span><span className="font-mono">{shippingMethod ? `GH₵ ${shippingFee}` : '—'}</span></div>
-          <div className="flex justify-between pt-2 border-t border-zinc-200 font-bold"><span>Total</span><span className="font-mono">GH₵ {(displaySubtotal + shippingFee).toFixed(2)} <span className="text-xs font-normal text-zinc-400">(authoritative on Place Order)</span></span></div>
+      <div className="checkout-steps">
+        <div className={`co-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'done' : ''}`}>
+          <div className="co-num">{step > 1 ? '✓' : '1'}</div>
+          <span className="co-label">Address</span>
         </div>
-        <div className="text-xs text-zinc-400 mt-2">{authoritativeSubtotalNote}</div>
-      </div>
-
-      <div className="bg-white border border-zinc-200 rounded-2xl p-4">
-        <h3 className="text-sm font-bold">Delivery method</h3>
-        <p className="text-xs text-zinc-500 mt-1">Select how you want your order delivered — fee added to total.</p>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {(['air', 'sea'] as const).map(m => {
-            const opt = SHIPPING_OPTIONS[m]
-            const selected = shippingMethod === m
-            return (
-              <button key={m} onClick={() => setShippingMethod(m)} className={`text-left p-4 rounded-xl border-2 ${selected ? 'border-[#5B5FEF] bg-[#F5F5FF]' : 'border-zinc-200 hover:border-zinc-300 bg-white'}`}>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm">{opt.label}</span>
-                  <span className={`text-xs px-2 py-1 rounded-full ${m === 'air' ? 'bg-[#FFEADB] text-[#D35F09]' : 'bg-zinc-100 text-zinc-600'}`}>{opt.type}</span>
-                </div>
-                <div className="text-xs text-zinc-500 mt-1">{opt.estimate}</div>
-                <div className="text-sm font-bold mt-2">GH₵{opt.fee}</div>
-              </button>
-            )
-          })}
+        <div className="co-connector" />
+        <div className={`co-step ${step >= 2 ? 'active' : ''} ${step > 2 ? 'done' : ''}`}>
+          <div className="co-num">{step > 2 ? '✓' : '2'}</div>
+          <span className="co-label">Shipping</span>
         </div>
-        {selectedShipping && <div className="mt-3 text-xs text-zinc-600">Selected: <strong>{selectedShipping.label}</strong> · {selectedShipping.type} · {selectedShipping.estimate} — fee GH₵{selectedShipping.fee} added to total. Changing Air ↔ Sea updates total immediately.</div>}
-        <div className="mt-2 text-xs text-zinc-400">Pricing from <code>src/lib/shipping.ts</code> — isolated config (DB has single <code>settings.delivery_fee=15</code>, not per-method, so code config used per spec).</div>
+        <div className="co-connector" />
+        <div className={`co-step ${step >= 3 ? 'active' : ''} ${step > 3 ? 'done' : ''}`}>
+          <div className="co-num">3</div>
+          <span className="co-label">Payment</span>
+        </div>
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded-2xl p-4">
-        <h3 className="text-sm font-bold">Payment method</h3>
-        <div className="mt-3">
-          <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer ${paymentMethod === 'momo' ? 'border-[#5B5FEF] bg-[#F5F5FF]' : 'border-zinc-200 hover:border-zinc-300'}`}>
-            <input type="radio" name="payment" value="momo" checked={paymentMethod === 'momo'} onChange={() => setPaymentMethod('momo')} className="accent-[#5B5FEF]" />
-            <span className="text-sm font-semibold">Mobile Money — Manual</span>
-            <span className="ml-auto text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">Pending until verified</span>
-          </label>
+      <div className="card" style={{ padding: 18, marginBottom: 14 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Account</h3>
+        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{profile?.full_name ?? user.email} · {profile?.email ?? user.email}</div>
+      </div>
+
+      <div className="card" style={{ padding: 18, marginBottom: 14 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Delivery address</h3>
+        <input
+          value={deliveryAddress}
+          onChange={e => setDeliveryAddress(e.target.value)}
+          placeholder="Enter delivery address (e.g. UCC Main Campus, Hall...)"
+          style={{ width: '100%', border: '1px solid var(--border-strong)', borderRadius: 9, padding: '9px 12px', fontSize: 13, outline: 'none', background: 'var(--surface)', color: 'var(--text)' }}
+        />
+      </div>
+
+      <div className="card" style={{ padding: 18, marginBottom: 14 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Review items ({items.length})</h3>
+        {items.map(i => (
+          <div key={i.variant_id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+            <span>{i.product_name} — {i.variant_name ?? 'Default'} ×{i.quantity}</span>
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>GH₵ {(i.unit_price * i.quantity).toFixed(2)}</span>
+          </div>
+        ))}
+        <div style={{ marginTop: 12 }}>
+          <div className="co-summary-row"><span>Subtotal</span><span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>GH₵ {displaySubtotal.toFixed(2)}</span></div>
+          <div className="co-summary-row"><span>Shipping {selectedShipping ? `(${selectedShipping.label})` : ''}</span><span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{shippingMethod ? `GH₵ ${shippingFee}` : '—'}</span></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid var(--border)', fontWeight: 700, fontSize: 14 }}>
+            <span>Total</span>
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>GH₵ {(displaySubtotal + shippingFee).toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: 18, marginBottom: 14 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Delivery method</h3>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Select how you want your order delivered.</p>
+        {(['air', 'sea'] as const).map(m => {
+          const opt = SHIPPING_OPTIONS[m]
+          const selected = shippingMethod === m
+          return (
+            <div key={m} className={`pay-option ${selected ? 'selected' : ''}`} onClick={() => setShippingMethod(m)}>
+              <div className="pay-icon"><Truck style={{ width: 18, height: 18, color: 'var(--primary)' }} /></div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>{opt.label}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{opt.estimate}</div>
+              </div>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700, fontSize: 13 }}>GH₵ {opt.fee}</div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="card" style={{ padding: 18, marginBottom: 14 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Payment method</h3>
+        <div className={`pay-option ${paymentMethod === 'momo' ? 'selected' : ''}`} onClick={() => setPaymentMethod('momo')}>
+          <div className="pay-icon"><CreditCard style={{ width: 18, height: 18, color: 'var(--primary)' }} /></div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 13 }}>Mobile Money — Manual</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Pending admin verification</div>
+          </div>
         </div>
         {paymentMethod === 'momo' && (
-          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <h4 className="text-sm font-bold text-amber-900">Pay with Mobile Money</h4>
-            <p className="text-sm text-amber-800 mt-2">Send the <strong>exact final total</strong> (subtotal + shipping) to Cartiva MoMo.</p>
-            <div className="mt-3 grid gap-2 text-sm bg-white rounded-xl p-3 border border-amber-200">
-              <div className="flex justify-between"><span className="text-zinc-500">MoMo Network:</span><span className="font-semibold">{MOMO_CONFIG.network ?? <span className="text-amber-600">[CONFIGURED ADMIN NETWORK — required]</span>}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Account Name:</span><span className="font-semibold">{MOMO_CONFIG.accountName ?? <span className="text-amber-600">[CONFIGURED ACCOUNT NAME — required]</span>}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Account Number:</span><span className="font-mono font-semibold">{MOMO_CONFIG.accountNumber ?? <span className="text-amber-600">[CONFIGURED NUMBER — required]</span>}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Amount:</span><span className="font-mono font-bold">GH₵ {(displaySubtotal + shippingFee).toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Reference:</span><span className="font-mono">CARTIVA-ORDER-ID</span></div>
+          <div style={{ marginTop: 12, background: 'var(--warning-light)', borderRadius: 12, padding: 16, border: '1px solid var(--warning)' }}>
+            <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Pay with Mobile Money</h4>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>Send the <strong>exact final total</strong> to Cartiva MoMo.</p>
+            <div style={{ marginTop: 10, background: 'var(--surface)', borderRadius: 10, padding: 12, border: '1px solid var(--border)', fontSize: 13 }}>
+              <div className="co-summary-row"><span>Network:</span><span style={{ fontWeight: 600 }}>{MOMO_CONFIG.network ?? '[Not configured]'}</span></div>
+              <div className="co-summary-row"><span>Account Name:</span><span style={{ fontWeight: 600 }}>{MOMO_CONFIG.accountName ?? '[Not configured]'}</span></div>
+              <div className="co-summary-row"><span>Number:</span><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>{MOMO_CONFIG.accountNumber ?? '[Not configured]'}</span></div>
+              <div className="co-summary-row"><span>Amount:</span><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>GH₵ {(displaySubtotal + shippingFee).toFixed(2)}</span></div>
+              <div className="co-summary-row"><span>Reference:</span><span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>CARTIVA-ORDER-ID</span></div>
             </div>
-            {!isMomoConfigured() && <div className="mt-3 text-xs text-amber-700 bg-amber-100 rounded-lg px-3 py-2">MoMo not configured — placeholders shown. Set <code>VITE_MOMO_NETWORK/ACCOUNT_NAME/NUMBER</code>.</div>}
-            <label className="mt-4 flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={hasClaimedPayment} onChange={e => setHasClaimedPayment(e.target.checked)} className="rounded" />
-              <span className="text-sm">I have made the payment <span className="text-zinc-500">(does not mark as paid — Admin verifies, stays Pending)</span></span>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, cursor: 'pointer', fontSize: 13 }}>
+              <input type="checkbox" checked={hasClaimedPayment} onChange={e => setHasClaimedPayment(e.target.checked)} />
+              <span>I have made the payment</span>
             </label>
           </div>
         )}
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>}
+      {error && <div style={{ background: 'var(--danger-light)', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 12, padding: '10px 16px', fontSize: 13, marginBottom: 14 }}>{error}</div>}
 
-      <div className="flex gap-2">
-        <Link to="/cart" className="px-4 py-3 rounded-xl border border-zinc-200 text-sm font-semibold">Back to cart</Link>
-        <button onClick={handlePlaceOrder} disabled={placing} className="flex-1 py-3 rounded-xl bg-[#5B5FEF] text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-          {placing ? 'Placing order...' : `Place Order — GH₵ ${(displaySubtotal + shippingFee).toFixed(2)} (Pending Payment)`}
+      <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+        <Link to="/cart" className="btn">Back to cart</Link>
+        <button onClick={handlePlaceOrder} disabled={placing} className="btn primary block" style={{ flex: 1 }}>
+          {placing ? 'Placing order...' : `Place Order — GH₵ ${(displaySubtotal + shippingFee).toFixed(2)}`}
         </button>
       </div>
-      <div className="text-xs text-zinc-400">Order will be created with <code>customer_id = auth.uid()</code>, authoritative prices, and shipping fee from <code>shipping.ts</code>. Manipulated totals cannot affect order.</div>
     </div>
   )
 }

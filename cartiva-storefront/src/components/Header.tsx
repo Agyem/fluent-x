@@ -1,70 +1,128 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { Search, ShoppingCart, Menu, X, LogOut } from 'lucide-react'
-import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { Search, ShoppingCart, Menu, X, Home, ShoppingBag, Heart, Bell, Settings, LogOut } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import FloatingCart from './FloatingCart'
 
-const nav = [
-  { to: '/', label: 'Home' },
-  { to: '/catalogue', label: 'Catalogue' },
-  { to: '/orders', label: 'Orders' },
-]
-
 export default function Header() {
-  const [open, setOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [q, setQ] = useState('')
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, signOut } = useAuth()
   const { count } = useCart()
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     if (q.trim()) navigate(`/catalogue?search=${encodeURIComponent(q.trim())}`)
   }
-  const handleLogout = async () => { await signOut(); navigate('/') }
+
+  const handleLogout = async () => { setDropdownOpen(false); await signOut(); navigate('/') }
+
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/'
+    return location.pathname.startsWith(path)
+  }
+
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'
+  const userInitials = userName.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
+
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <div class="brand" style="cursor:pointer;" onClick={() => navigate('/')}>
-          <div class="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold bg-[#F2720E] text-white">C</div>
-          <span className="font-bold text-[17px] tracking-tight hidden sm:inline">Cartiva</span>
+        <div className="brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+          <div className="w-8 h-8 rounded-[9px] bg-primary flex items-center justify-center text-white font-bold text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>C</div>
+          <span className="font-bold text-[17px] tracking-tight hidden sm:inline" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Cartiva</span>
         </div>
 
         <nav className="site-nav">
-          {nav.map(n => (
-            <button key={n.to} className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${navigate().route === n.to ? 'bg-[#FDF2E9] text-[#D35F09]' : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'}`} onClick={() => navigate(n.to)}>
-              {n.label}
-            </button>
-          ))}
+          <button className={isActive('/') ? 'active' : ''} onClick={() => navigate('/')}>Home</button>
+          <button className={isActive('/catalogue') ? 'active' : ''} onClick={() => navigate('/catalogue')}>Categories</button>
+          <button className={isActive('/orders') ? 'active' : ''} onClick={() => navigate('/orders')}>Orders</button>
+          <button className={isActive('/cart') ? 'active' : ''} onClick={() => navigate('/cart')}>Help</button>
         </nav>
 
-        <div class="site-search">
-          <Search className="w-4 h-4 text-zinc-400 shrink-0" />
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search products..." className="bg-transparent outline-none text-sm w-full placeholder:text-zinc-400" />
+        <div className="site-search">
+          <Search />
+          <input
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') submit(e) }}
+            placeholder="Search products..."
+          />
         </div>
 
-        <div class="site-right">
-          <button onClick={() => setCartOpen(true)} className="relative icon-btn">
-            <ShoppingCart className="w-4 h-4" />
-            {count > 0 && <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 grid place-items-center rounded-full bg-[#F2720E] text-white text-[10px] font-bold]">{count}</span>}
+        <div className="site-right">
+          <button className="icon-btn cart-btn" onClick={() => setCartOpen(true)} aria-label="Cart">
+            <ShoppingCart />
+            {count > 0 && <span className="count">{count}</span>}
           </button>
-          {user ? (
-            <>
-              <div class="avatar" onClick={() => navigate('/account')}>{user.email?.[0]?.toUpperCase() ?? 'U'}</div>
-            </>
-          ) : (
-            <>
-              <button className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 text-sm font-semibold hover:bg-zinc-50">Login</button>
-              <button className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F2720E] text-white text-sm font-semibold">Create Account</button>
-            </>
-          )}
-          <button className="md:hidden w-9 h-9 grid place-items-center rounded-xl border border-zinc-200" onClick={() => setOpen(!open)} aria-label="Menu">
-            {open ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
+
+          <div style={{ position: 'relative' }} ref={dropdownRef}>
+            <div className="avatar" onClick={() => setDropdownOpen(!dropdownOpen)}>
+              {userInitials}
+            </div>
+            {dropdownOpen && (
+              <div className="account-dropdown" onClick={e => e.stopPropagation()}>
+                <div className="dd-head">
+                  <div className="dd-name">{userName}</div>
+                  <div className="dd-email">{user?.email ?? ''}</div>
+                </div>
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account') }}>
+                  <Home />My Cartiva
+                </button>
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/orders') }}>
+                  <ShoppingBag />Orders
+                </button>
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/cart') }}>
+                  <Heart />Wishlist
+                </button>
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account') }}>
+                  <Bell />Notifications
+                </button>
+                <hr />
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account') }}>
+                  <Settings />Settings
+                </button>
+                <button className="dd-item" onClick={handleLogout}>
+                  <LogOut />Sign out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
       <FloatingCart open={cartOpen} onClose={() => setCartOpen(false)} />
+
+      <div className="mobile-bottomnav">
+        <button className={isActive('/') ? 'active' : ''} onClick={() => navigate('/')}>
+          <Home /><span>Home</span>
+        </button>
+        <button className={isActive('/catalogue') ? 'active' : ''} onClick={() => navigate('/catalogue')}>
+          <ShoppingBag /><span>Shop</span>
+        </button>
+        <button className={isActive('/cart') ? 'active' : ''} onClick={() => navigate('/cart')}>
+          <ShoppingCart />{count > 0 && <span className="mb-badge" />}<span>Cart</span>
+        </button>
+        <button className={isActive('/account') ? 'active' : ''} onClick={() => navigate('/account')}>
+          <Settings /><span>Account</span>
+        </button>
+      </div>
     </header>
   )
 }

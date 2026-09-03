@@ -6,19 +6,21 @@ import { SkeletonCard } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
 import Placeholder from '../components/Placeholder'
 import { displayCategoryName } from '../lib/categoryDisplay'
+import { Package } from 'lucide-react'
+
+const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export default function Catalogue() {
   const [params, setParams] = useSearchParams()
   const search = (params.get('search') ?? '').toLowerCase()
   const categoryFilter = params.get('category') ?? ''
+  const sortBy = params.get('sort') ?? 'popular'
 
   const [cats, setCats] = useState<Category[] | null>(null)
   const [products, setProducts] = useState<Product[] | null>(null)
   const [variantPrices, setVariantPrices] = useState<Record<string, number | null>>({})
-  const [err, setErr] = useState<string | null>(null)
-
-  // Simple image map: productId -> hasImage (0 rows currently, but ready)
   const [imageMap, setImageMap] = useState<Record<string, boolean>>({})
+  const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -28,7 +30,6 @@ export default function Catalogue() {
         if (cancelled) return
         setCats(c)
         setProducts(p)
-        // Pre-check images and authoritative variant prices (to avoid GH₵0 for variable products)
         const entries: Record<string, boolean> = {}
         const priceMap: Record<string, number | null> = {}
         await Promise.all(p.map(async prod => {
@@ -39,7 +40,6 @@ export default function Catalogue() {
               entries[prod.id] = !!url
             } else entries[prod.id] = false
           } catch { entries[prod.id] = false }
-          // Authoritative price from variants for variable products
           if (prod.product_type === 'variable') {
             try {
               const vars = await getProductVariants(prod.id)
@@ -73,59 +73,100 @@ export default function Catalogue() {
         (p.description ?? '').toLowerCase().includes(search)
       )
     }
+    if (sortBy === 'price-asc') list = [...list].sort((a, b) => (variantPrices[a.id] ?? a.sale_price ?? a.base_price ?? 0) - (variantPrices[b.id] ?? b.sale_price ?? b.base_price ?? 0))
+    else if (sortBy === 'price-desc') list = [...list].sort((a, b) => (variantPrices[b.id] ?? b.sale_price ?? b.base_price ?? 0) - (variantPrices[a.id] ?? a.sale_price ?? a.base_price ?? 0))
     return list
-  }, [products, categoryFilter, search])
+  }, [products, categoryFilter, search, sortBy, variantPrices])
+
+  const setSort = (v: string) => {
+    const next = new URLSearchParams(params)
+    if (v) next.set('sort', v); else next.delete('sort')
+    setParams(next)
+  }
 
   if (err) return <ErrorState message={err} onRetry={() => location.reload()} />
   if (cats === null || products === null || filtered === null) {
-    return <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
+    return <div className="product-grid"><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
+  }
+
+  const activeCat = categoryFilter ? cats.find(c => c.id === categoryFilter) : null
+  const catColors: Record<string, string> = {
+    'Smartphones': 'bg-red-100 text-red-600',
+    'Laptops': 'bg-blue-100 text-blue-600',
+    'Audio & Wearables': 'bg-green-100 text-green-600',
+    'Accessories': 'bg-orange-100 text-orange-700',
+    'Home Appliances': 'bg-purple-100 text-purple-600',
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
-        <h1 className="text-xl font-bold">Catalogue</h1>
-        <div className="flex gap-2">
-          <select value={categoryFilter} onChange={e => { const v = e.target.value; const next = new URLSearchParams(params); if (v) next.set('category', v); else next.delete('category'); setParams(next) }} className="border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white">
-            <option value="">All categories</option>
-            {cats.map(c => <option key={c.id} value={c.id}>{displayCategoryName(c.name)}</option>)}
-          </select>
-          <input value={params.get('search') ?? ''} onChange={e => { const v = e.target.value; const next = new URLSearchParams(params); if (v) next.set('search', v); else next.delete('search'); setParams(next) }} placeholder="Search..." className="border border-zinc-200 rounded-xl px-3 py-2 text-sm w-40" />
+    <>
+      <div className="breadcrumb">
+        <span style={{ cursor: 'pointer' }} onClick={() => window.location.href = '/'}>Home</span> / <b>{activeCat ? displayCategoryName(activeCat.name) : 'All products'}</b>
+      </div>
+      <div className="cat-layout">
+        <div>
+          <div className="filter-block">
+            <h4>Category</h4>
+            <div className="filter-row" onClick={() => { const next = new URLSearchParams(params); next.delete('category'); setParams(next) }}>
+              <input type="radio" checked={!categoryFilter} readOnly /> All products
+            </div>
+            {cats.map(c => (
+              <div key={c.id} className="filter-row" onClick={() => { const next = new URLSearchParams(params); next.set('category', c.id); setParams(next) }}>
+                <input type="radio" checked={categoryFilter === c.id} readOnly /> {displayCategoryName(c.name)}
+              </div>
+            ))}
+          </div>
+          <div className="filter-block">
+            <h4>Availability</h4>
+            <div className="filter-row"><input type="checkbox" defaultChecked /> In stock only</div>
+          </div>
+        </div>
+
+        <div>
+          <div className="toolbar">
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{filtered.length} product{filtered.length !== 1 ? 's' : ''}</div>
+            <select className="sort-select" value={sortBy} onChange={e => setSort(e.target.value)}>
+              <option value="popular">Most popular</option>
+              <option value="price-asc">Price: low to high</option>
+              <option value="price-desc">Price: high to low</option>
+            </select>
+          </div>
+
+          {filtered.length === 0 ? (
+            search || categoryFilter
+              ? <Placeholder title="No results" desc={`No products match ${search ? `search "${search}"` : ''} ${categoryFilter ? 'in this category' : ''}.`} />
+              : <Placeholder title="No products" desc="No active products in database." />
+          ) : (
+            <div className="product-grid">
+              {filtered.map(p => {
+                const displayPrice = variantPrices[p.id] ?? (p.sale_price ?? p.base_price)
+                const hasPrice = displayPrice != null && displayPrice !== 0
+                const catName = displayCategoryName(cats.find(c => c.id === p.category_id)?.name ?? 'Uncategorized')
+                const hasImage = imageMap[p.id]
+                const colorClass = catColors[catName] || 'bg-zinc-200 text-zinc-400'
+                return (
+                  <Link key={p.id} to={`/product/${p.id}`} className="card product-card">
+                    <div className="pc-image">
+                      {hasImage ? (
+                        <img src={getPublicImageUrl(p.id)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Package />
+                      )}
+                    </div>
+                    <div className="pc-body">
+                      <div className="pc-cat">{catName}</div>
+                      <div className="pc-name">{p.name}</div>
+                      <div className="pc-price-row">
+                        <span className="pc-price">{hasPrice ? CEDI(displayPrice!) : 'Price not set'}</span>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
-
-      {filtered.length === 0 ? (
-        search || categoryFilter
-          ? <Placeholder title="No results" desc={`No products match ${search ? `search "${search}"` : ''} ${categoryFilter ? 'in this category' : ''}.`} />
-          : <Placeholder title="No products" desc="No active products in database." />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(p => {
-            const hasImage = imageMap[p.id]
-            const displayPrice = variantPrices[p.id] ?? (p.sale_price ?? p.base_price)
-            const hasPrice = displayPrice != null && displayPrice !== 0
-            const catName = displayCategoryName(cats.find(c => c.id === p.category_id)?.name ?? 'Uncategorized')
-            return (
-              <Link key={p.id} to={`/product/${p.id}`} className="bg-white border border-zinc-200 rounded-2xl p-4 hover:border-zinc-300 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-md flex items-center justify-center text-xs font-bold {" + (catName.startsWith('S') ? 'bg-red-100 text-red-600' : catName.startsWith('L') ? 'bg-blue-100 text-blue-600' : catName.startsWith('A') ? 'bg-green-100 text-green-600' : catName.startsWith('H') ? 'bg-orange-100 text-orange-700' : 'bg-zinc-200 text-zinc-400') + "}>" + (catName.charAt(0).toUpperCase()) + "</div>
-                  <span className="text-xs text-zinc-500 uppercase tracking-wide">{catName}</span>
-                </div>
-                <div className="font-semibold line-clamp-2">{p.name}</div>
-                <div className="text-sm font-bold">
-                  {hasPrice ? `GH₵ ${displayPrice}` : <span className="text-zinc-400 font-normal text-xs">Price not set</span>}
-                </div>
-                {p.sku ? <div className="text-xs text-zinc-400">SKU {p.sku}</div> : null}
-                {hasImage ? (
-                  <div className="mt-2 text-xs bg-green-50 border border-green-200 rounded-xl p-3 text-green-700">Image available</div>
-                ) : (
-                  <div className="mt-2 text-xs bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-3 text-zinc-500 text-center">No image available</div>
-                )}
-              </Link>
-            )
-          })}
-        </div>
-      )}
-    </div>
+    </>
   )
 }
