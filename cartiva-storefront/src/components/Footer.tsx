@@ -10,13 +10,16 @@ export default function Footer() {
             <span className="font-bold text-white">Cartiva 2.0</span>
             <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full">Storefront</span>
           </div>
-          <p className="text-sm text-zinc-400 max-w-[280px] leading-relaxed">Modern tech e-commerce — same Supabase as the Management System. Management → Supabase ← Storefront. No direct .exe connection.</p>
+          <p className="text-sm text-zinc-400 max-w-[280px] leading-relaxed">Modern tech e-commerce for Ghana — smartphones, laptops, audio & home appliances, delivered fast and securely.</p>
         </div>
         <div>
           <h4 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">Shop</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/catalogue" className="hover:text-white">Catalogue</Link></li>
-            <li><Link to="/catalogue" className="hover:text-white">New arrivals</Link></li>
+            <li><Link to="/catalogue" className="hover:text-white">Smartphones</Link></li>
+            <li><Link to="/catalogue" className="hover:text-white">Laptops</Link></li>
+            <li><Link to="/catalogue" className="hover:text-white">Audio & Wearables</Link></li>
+            <li><Link to="/catalogue" className="hover:text-white">Accessories</Link></li>
+            <li><Link to="/catalogue" className="hover:text-white">Home Appliances</Link></li>
           </ul>
         </div>
         <div>
@@ -35,8 +38,8 @@ export default function Footer() {
       </div>
       <div className="border-t border-white/10">
         <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-7 py-4 flex flex-col sm:flex-row gap-2 justify-between text-xs text-zinc-500">
-          <span>© 2026 Cartiva 2.0 — Storefront foundation</span>
-          <span>VITE_SUPABASE_URL connected · anon key only</span>
+          <span>© 2026 Cartiva — All rights reserved.</span>
+          <span>Secure shopping • Fast delivery • Easy returns</span>
         </div>
       </div>
     </footer>

@@ -4,7 +4,6 @@ import { getProductById, getProductVariants, getProductOptions, getProductOption
 import type { Product, ProductVariant, ProductOption, ProductOptionValue, VariantOptionValue, ProductImage, Category } from '../lib/catalogue'
 import { Loading } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
-import Placeholder from '../components/Placeholder'
 import { useCart } from '../context/CartContext'
 
 export default function ProductDetails() {
@@ -80,24 +79,31 @@ export default function ProductDetails() {
           {publicUrl ? (
             <img src={publicUrl} alt={product.name} className="max-w-full max-h-full object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
           ) : (
-            <Placeholder title="No image" desc={images?.length === 0 ? "No product_images records — placeholder (bucket missing, Stage 2A)" : "Image placeholder — bucket missing, isolated via getPublicImageUrl()"} />
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto rounded-xl bg-zinc-100 grid place-items-center text-zinc-400">No image</div>
+              <div className="text-xs text-zinc-400 mt-2">No image available</div>
+            </div>
           )}
         </div>
-        {images && images.length > 1 && <div className="mt-3 text-xs text-zinc-500">{images.length} image records in DB (public URL attempted via isolated layer)</div>}
       </div>
 
       <div className="space-y-4">
         <div>
           <div className="text-xs text-zinc-500 uppercase tracking-wide">{category?.name ?? 'Uncategorized'} · {product.product_type}</div>
           <h1 className="text-2xl font-bold mt-1">{product.name}</h1>
-          <div className="text-sm text-zinc-500 mt-1">SKU {selectedVariant?.sku ?? product.sku ?? '—'}</div>
+          {(selectedVariant?.sku ?? product.sku) && <div className="text-sm text-zinc-500 mt-1">SKU {selectedVariant?.sku ?? product.sku}</div>}
         </div>
 
         <div className="bg-white border border-zinc-200 rounded-2xl p-4">
           <div className="text-lg font-bold">
-            {selectedVariant ? (
-              <>{selectedVariant.sale_price != null ? `GH₵ ${selectedVariant.sale_price}` : `GH₵ ${selectedVariant.price}`} {selectedVariant.sale_price != null && selectedVariant.sale_price < selectedVariant.price && <span className="ml-2 text-sm font-normal line-through text-zinc-400">GH₵ {selectedVariant.price}</span>}</>
-            ) : product.sale_price != null ? `GH₵ ${product.sale_price}` : product.base_price != null ? `GH₵ ${product.base_price}` : '—'}
+            {(() => {
+              const vPrice = selectedVariant ? (selectedVariant.sale_price ?? selectedVariant.price) : (product.sale_price ?? product.base_price)
+              if (vPrice == null || vPrice === 0) return <span className="text-zinc-400 font-normal text-sm">Price not set</span>
+              if (selectedVariant) {
+                return <>{selectedVariant.sale_price != null && selectedVariant.sale_price !== 0 ? `GH₵ ${selectedVariant.sale_price}` : `GH₵ ${selectedVariant.price}`} {selectedVariant.sale_price != null && selectedVariant.sale_price !== 0 && selectedVariant.sale_price < selectedVariant.price && <span className="ml-2 text-sm font-normal line-through text-zinc-400">GH₵ {selectedVariant.price}</span>}</>
+              }
+              return product.sale_price != null && product.sale_price !== 0 ? `GH₵ ${product.sale_price}` : `GH₵ ${product.base_price}`
+            })()}
           </div>
           <div className="text-xs text-zinc-500 mt-1">{product.active ? 'Active · available to customers' : 'Inactive · not visible to storefront'}</div>
           {product.description && <p className="text-sm text-zinc-600 mt-3 leading-relaxed">{product.description}</p>}
@@ -128,12 +134,16 @@ export default function ProductDetails() {
           <h3 className="text-sm font-bold mb-2">Variants ({variants?.length ?? 0})</h3>
           {variants && variants.length === 0 ? <div className="text-sm text-zinc-500">No active variants — product unavailable</div>
           : <div className="space-y-2">
-              {variants?.map(v => (
-                <button key={v.id} onClick={() => setSelectedVariantId(v.id)} className={`w-full text-left px-3 py-2 rounded-xl border text-sm flex justify-between items-center ${selectedVariantId === v.id ? 'bg-[#FDF2E9] border-[#F2720E] text-[#D35F09]' : 'bg-white border-zinc-200 hover:border-zinc-300'}`}>
-                  <span>{v.name} <span className="text-zinc-400">· {v.sku ?? 'no SKU'}</span></span>
-                  <span className="font-bold">{v.sale_price != null ? `GH₵ ${v.sale_price}` : `GH₵ ${v.price}`}</span>
-                </button>
-              ))}
+              {variants?.map(v => {
+                const vp = v.sale_price ?? v.price
+                const priceDisplay = vp == null || vp === 0 ? 'Price not set' : `GH₵ ${vp}`
+                return (
+                  <button key={v.id} onClick={() => setSelectedVariantId(v.id)} className={`w-full text-left px-3 py-2 rounded-xl border text-sm flex justify-between items-center ${selectedVariantId === v.id ? 'bg-[#FDF2E9] border-[#F2720E] text-[#D35F09]' : 'bg-white border-zinc-200 hover:border-zinc-300'}`}>
+                    <span>{v.name} {v.sku ? <span className="text-zinc-400">· {v.sku}</span> : null}</span>
+                    <span className={`font-bold ${vp === 0 ? 'text-zinc-400 font-normal text-xs' : ''}`}>{priceDisplay}</span>
+                  </button>
+                )
+              })}
             </div>}
           <div className="mt-3 text-xs text-zinc-500">Simple products have hidden "Default" variant — read existing variant, not created (docs §4.2).</div>
         </div>

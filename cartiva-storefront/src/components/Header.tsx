@@ -3,6 +3,7 @@ import { Search, ShoppingCart, Menu, X, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import FloatingCart from './FloatingCart'
 
 const nav = [
   { to: '/', label: 'Home' },
@@ -12,6 +13,7 @@ const nav = [
 
 export default function Header() {
   const [open, setOpen] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
   const [q, setQ] = useState('')
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
@@ -43,10 +45,10 @@ export default function Header() {
         </form>
 
         <div className="flex items-center gap-2 ml-auto sm:ml-0">
-          <Link to="/cart" className="relative w-9 h-9 grid place-items-center rounded-xl border border-zinc-200 hover:bg-zinc-50">
+          <button onClick={() => setCartOpen(true)} className="relative w-9 h-9 grid place-items-center rounded-xl border border-zinc-200 hover:bg-zinc-50">
             <ShoppingCart className="w-4 h-4" />
             {count > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-[#5B5FEF] text-white text-[11px] font-bold">{count}</span>}
-          </Link>
+          </button>
           {user ? (
             <>
               <Link to="/account" className="w-9 h-9 grid place-items-center rounded-full bg-[#F2720E] text-white font-bold text-sm" title="Account">{user.email?.[0]?.toUpperCase() ?? 'U'}</Link>
@@ -87,6 +89,7 @@ export default function Header() {
           </div>
         </div>
       )}
+      <FloatingCart open={cartOpen} onClose={() => setCartOpen(false)} />
     </header>
   )
 }
