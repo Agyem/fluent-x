@@ -18,7 +18,6 @@ export default function Register() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErr(null); setInfo(null)
-    // Client validation (not security)
     if (!fullName.trim() || !email.trim() || !password) { setErr('Please fill in all required fields.'); return }
     if (!validateEmail(email)) { setErr('Please enter a valid email address.'); return }
     if (password.length < 6) { setErr('Password must be at least 6 characters.'); return }
@@ -26,58 +25,33 @@ export default function Register() {
 
     setLoading(true)
     try {
-      // No role field — storefront never sends role. DB must enforce customer.
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            phone: phone.trim() || undefined,
-            // Note: no role here — security is DB-enforced
-          }
-        }
+        options: { data: { full_name: fullName.trim(), phone: phone.trim() || undefined } }
       })
       if (error) { setErr(error.message); return }
 
-      // Email confirmation handling: mailer_autoconfirm is false per inspection
       if (!data.session && data.user) {
-        // User created but needs to confirm email — no session yet
-        setInfo('Account created! Please check your email to confirm your address before logging in. (Email confirmation is enabled for this project)')
+        setInfo('Account created! Please check your email to confirm your address before logging in.')
         return
       }
 
       if (data.session && data.user) {
-        // Session exists — check if profile was auto-created by trigger
-        // Do NOT blindly insert; first check if trigger already did it
         const { data: existing } = await supabase.from('profiles').select('id, role').eq('id', data.user.id).single()
         if (!existing) {
-          // No profile yet — try to create customer profile safely
-          // RLS must allow authenticated user to insert own profile where id = auth.uid() and role = customer
-          // If RLS blocks, we report blocker instead of using service role
           const { error: insertErr } = await supabase.from('profiles').insert({
-            id: data.user.id,
-            full_name: fullName.trim(),
-            email: email.trim(),
-            role: 'customer',
+            id: data.user.id, full_name: fullName.trim(), email: email.trim(), role: 'customer',
           })
           if (insertErr) {
-            // If insert fails due to RLS or trigger race, warn but don't use service role
-            console.warn('[register] profile insert failed', insertErr.message)
-            setInfo('Account created, but profile setup needs admin trigger. Please contact support if login fails. (Do not retry with service key)')
-            // Do NOT redirect to /account — profile may not exist yet. Stay on this page with the info message.
-            // The trigger may create it later, or user can log in after email confirmation.
+            setInfo('Account created, but profile setup needs admin trigger. Please contact support if login fails.')
             return
           }
-          // Also try customer_profiles if needed — check if table requires row
           try {
             const { data: cp } = await supabase.from('customer_profiles').select('profile_id').eq('profile_id', data.user.id).single()
-            if (!cp) {
-              await supabase.from('customer_profiles').insert({ profile_id: data.user.id })
-            }
-          } catch { /* ignore — may be auto-created or RLS blocks, not critical for Stage 4 */ }
+            if (!cp) await supabase.from('customer_profiles').insert({ profile_id: data.user.id })
+          } catch { /* ignore */ }
         }
-        // Success — redirect to account (will be protected)
         navigate('/account')
       }
     } catch (e) {
@@ -88,36 +62,37 @@ export default function Register() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white border border-zinc-200 rounded-2xl p-6">
-      <h1 className="text-xl font-bold">Create account</h1>
-      <p className="text-sm text-zinc-500 mt-1">Customers only. Role is always <span className="font-semibold text-zinc-700">customer</span> — enforced by database.</p>
-      <form onSubmit={submit} className="mt-6 space-y-4">
-        <div>
-          <label className="text-xs font-semibold text-zinc-600">Full name *</label>
-          <input value={fullName} onChange={e => setFullName(e.target.value)} className="mt-1 w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-zinc-300" placeholder="Ama Mensah" />
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-zinc-600">Email *</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-zinc-300" placeholder="ama@example.com" />
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-zinc-600">Phone (optional)</label>
-          <input value={phone} onChange={e => setPhone(e.target.value)} className="mt-1 w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-zinc-300" placeholder="+233..." />
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-zinc-600">Password *</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1 w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-zinc-300" placeholder="••••••••" />
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-zinc-600">Confirm password *</label>
-          <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} className="mt-1 w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-zinc-300" placeholder="••••••••" />
-        </div>
-        {err && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-3 py-2">{err}</div>}
-        {info && <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-3 py-2">{info}</div>}
-        <button disabled={loading} className="w-full py-3 rounded-xl bg-[#5B5FEF] text-white text-sm font-semibold disabled:opacity-50">{loading ? 'Creating...' : 'Create account'}</button>
-        <div className="text-sm text-center text-zinc-500">Already have an account? <Link to="/login" className="text-[#5B5FEF] font-semibold">Log in</Link></div>
-      </form>
-      <div className="mt-4 text-xs text-zinc-400">Uses <code>supabase.auth.signUp()</code> with anon key only — no role field, no service-role, no create-user Edge Function.</div>
+    <div style={{ maxWidth: 420, margin: '0 auto' }}>
+      <div className="card" style={{ padding: 28 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 700 }}>Create account</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Customers only. Role is always <span style={{ fontWeight: 600 }}>customer</span> — enforced by database.</p>
+        <form onSubmit={submit} style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Full name *</label>
+            <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Ama Mensah" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Email *</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="ama@example.com" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Phone (optional)</label>
+            <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+233..." style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Password *</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Confirm password *</label>
+            <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="••••••••" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
+          </div>
+          {err && <div style={{ padding: '8px 12px', borderRadius: 9, background: 'var(--danger-light)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: 13 }}>{err}</div>}
+          {info && <div style={{ padding: '8px 12px', borderRadius: 9, background: 'var(--warning-light)', border: '1px solid var(--warning)', color: '#92600A', fontSize: 13 }}>{info}</div>}
+          <button disabled={loading} className="btn primary block" style={{ opacity: loading ? 0.5 : 1 }}>{loading ? 'Creating...' : 'Create account'}</button>
+          <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--text-muted)' }}>Already have an account? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Log in</Link></div>
+        </form>
+      </div>
     </div>
   )
 }

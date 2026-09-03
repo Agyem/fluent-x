@@ -19,7 +19,6 @@ export default function Login() {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
       if (error) {
-        // Handle unconfirmed email, invalid credentials, etc.
         if (error.message.toLowerCase().includes('email not confirmed')) {
           setErr('Please confirm your email first — check your inbox for the confirmation link.')
         } else if (error.message.toLowerCase().includes('invalid')) {
@@ -30,7 +29,6 @@ export default function Login() {
         return
       }
       if (data.user) {
-        // Verify profile is customer (storefront must not allow admin/staff)
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
         if (profile && profile.role !== 'customer') {
           await supabase.auth.signOut()
@@ -47,23 +45,24 @@ export default function Login() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white border border-zinc-200 rounded-2xl p-6">
-      <h1 className="text-xl font-bold">Log in</h1>
-      <p className="text-sm text-zinc-500 mt-1">Welcome back — customers only.</p>
-      <form onSubmit={submit} className="mt-6 space-y-4">
-        <div>
-          <label className="text-xs font-semibold text-zinc-600">Email</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-zinc-300" placeholder="ama@example.com" />
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-zinc-600">Password</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1 w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-zinc-300" placeholder="••••••••" />
-        </div>
-        {err && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-3 py-2">{err}</div>}
-        <button disabled={loading} className="w-full py-3 rounded-xl bg-zinc-900 text-white text-sm font-semibold disabled:opacity-50">{loading ? 'Signing in...' : 'Log in'}</button>
-        <div className="text-sm text-center text-zinc-500">No account? <Link to="/register" className="text-[#5B5FEF] font-semibold">Create account</Link></div>
-      </form>
-      <div className="mt-4 text-xs text-zinc-400">Uses <code>supabase.auth.signInWithPassword()</code> — no admin APIs.</div>
+    <div style={{ maxWidth: 420, margin: '0 auto' }}>
+      <div className="card" style={{ padding: 28 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 700 }}>Log in</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Welcome back — customers only.</p>
+        <form onSubmit={submit} style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="ama@example.com" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Password</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
+          </div>
+          {err && <div style={{ padding: '8px 12px', borderRadius: 9, background: 'var(--danger-light)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: 13 }}>{err}</div>}
+          <button disabled={loading} className="btn primary block" style={{ opacity: loading ? 0.5 : 1 }}>{loading ? 'Signing in...' : 'Log in'}</button>
+          <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--text-muted)' }}>No account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600 }}>Create account</Link></div>
+        </form>
+      </div>
     </div>
   )
 }

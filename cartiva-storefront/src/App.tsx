@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import RootLayout from './layouts/RootLayout'
+import AccountLayout from './layouts/AccountLayout'
 import RequireAuth from './components/RequireAuth'
 import Home from './pages/Home'
 import Catalogue from './pages/Catalogue'
@@ -11,8 +12,19 @@ import Checkout from './pages/Checkout'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Account from './pages/Account'
-import Orders from './pages/Orders'
-import OrderDetails from './pages/OrderDetails'
+import AccountOrders from './pages/account/Orders'
+import AccountOrderDetails from './pages/account/OrderDetails'
+import AccountAddresses from './pages/account/Addresses'
+import AccountWishlist from './pages/account/Wishlist'
+import AccountCart from './pages/account/CartAccount'
+import AccountReviews from './pages/account/Reviews'
+import AccountNotifications from './pages/account/Notifications'
+import AccountPayments from './pages/account/Payments'
+import AccountOffers from './pages/account/Offers'
+import AccountSupport from './pages/account/Support'
+import AccountProfile from './pages/account/Profile'
+import AccountSecurity from './pages/account/Security'
+import AccountSettings from './pages/account/Settings'
 
 export default function App() {
   return (
@@ -28,9 +40,22 @@ export default function App() {
               <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/account" element={<RequireAuth><Account /></RequireAuth>} />
-              <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
-              <Route path="/orders/:id" element={<RequireAuth><OrderDetails /></RequireAuth>} />
+            </Route>
+            <Route element={<RequireAuth><AccountLayout /></RequireAuth>}>
+              <Route path="/account" element={<Account />} />
+              <Route path="/account/orders" element={<AccountOrders />} />
+              <Route path="/account/orders/:id" element={<AccountOrderDetails />} />
+              <Route path="/account/addresses" element={<AccountAddresses />} />
+              <Route path="/account/wishlist" element={<AccountWishlist />} />
+              <Route path="/account/cart" element={<AccountCart />} />
+              <Route path="/account/reviews" element={<AccountReviews />} />
+              <Route path="/account/notifications" element={<AccountNotifications />} />
+              <Route path="/account/payments" element={<AccountPayments />} />
+              <Route path="/account/offers" element={<AccountOffers />} />
+              <Route path="/account/support" element={<AccountSupport />} />
+              <Route path="/account/profile" element={<AccountProfile />} />
+              <Route path="/account/security" element={<AccountSecurity />} />
+              <Route path="/account/settings" element={<AccountSettings />} />
             </Route>
           </Routes>
         </BrowserRouter>

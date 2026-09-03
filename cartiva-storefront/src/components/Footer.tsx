@@ -12,11 +12,11 @@ export default function Footer() {
 
   const customerLinks = [
     { label: 'My account', action: () => navigate('/account') },
-    { label: 'My orders', action: () => navigate('/orders') },
-    { label: 'Order tracking', action: () => navigate('/orders') },
-    { label: 'Wishlist', action: () => navigate('/cart') },
-    { label: 'Cart', action: () => navigate('/cart') },
-    { label: 'Reviews', action: () => navigate('/account') },
+    { label: 'My orders', action: () => navigate('/account/orders') },
+    { label: 'Order tracking', action: () => navigate('/account/orders') },
+    { label: 'Wishlist', action: () => navigate('/account/wishlist') },
+    { label: 'Cart', action: () => navigate('/account/cart') },
+    { label: 'Reviews', action: () => navigate('/account/reviews') },
   ]
 
   const supportLinks = [
@@ -39,7 +39,9 @@ export default function Footer() {
         <div className="footer-top">
           <div className="footer-col footer-brand">
             <div className="brand">
-              <div className="w-8 h-8 rounded-[9px] bg-primary flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>C</div>
+              <div className="brand-mark" style={{ width: 32, height: 32 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              </div>
               <span className="footer-wordmark">Cartiva</span>
             </div>
             <p>Everything for campus life, delivered to your hall.</p>
@@ -50,7 +52,7 @@ export default function Footer() {
               <button title="X (Twitter)">x</button>
               <button title="TikTok">tt</button>
             </div>
-            <div className="footer-contact-note">hello@cartiva.example (placeholder — add real contact details)</div>
+            <div className="footer-contact-note">support@cartiva.com</div>
           </div>
 
           <div className="footer-col">

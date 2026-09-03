@@ -45,15 +45,17 @@ export default function Header() {
     <header className="site-header">
       <div className="site-header-inner">
         <div className="brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <div className="w-8 h-8 rounded-[9px] bg-primary flex items-center justify-center text-white font-bold text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>C</div>
-          <span className="font-bold text-[17px] tracking-tight hidden sm:inline" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Cartiva</span>
+          <div className="brand-mark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <span className="brand-name">Cartiva</span>
         </div>
 
         <nav className="site-nav">
           <button className={isActive('/') ? 'active' : ''} onClick={() => navigate('/')}>Home</button>
           <button className={isActive('/catalogue') ? 'active' : ''} onClick={() => navigate('/catalogue')}>Categories</button>
-          <button className={isActive('/orders') ? 'active' : ''} onClick={() => navigate('/orders')}>Orders</button>
-          <button className={isActive('/cart') ? 'active' : ''} onClick={() => navigate('/cart')}>Help</button>
+          <button className={isActive('/account/orders') ? 'active' : ''} onClick={() => navigate('/account/orders')}>Orders</button>
+          <button className={isActive('/account/support') ? 'active' : ''} onClick={() => navigate('/account/support')}>Support</button>
         </nav>
 
         <div className="site-search">
@@ -85,17 +87,17 @@ export default function Header() {
                 <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account') }}>
                   <Home />My Cartiva
                 </button>
-                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/orders') }}>
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account/orders') }}>
                   <ShoppingBag />Orders
                 </button>
-                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/cart') }}>
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account/wishlist') }}>
                   <Heart />Wishlist
                 </button>
-                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account') }}>
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account/notifications') }}>
                   <Bell />Notifications
                 </button>
                 <hr />
-                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account') }}>
+                <button className="dd-item" onClick={() => { setDropdownOpen(false); navigate('/account/settings') }}>
                   <Settings />Settings
                 </button>
                 <button className="dd-item" onClick={handleLogout}>

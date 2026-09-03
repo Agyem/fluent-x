@@ -1,11 +1,11 @@
 export default function Placeholder({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-2xl p-8">
-      <h2 className="text-lg font-bold">{title}</h2>
-      <p className="text-sm text-zinc-500 mt-1">{desc}</p>
-      <div className="mt-4 text-xs inline-flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-full">
-        Placeholder — backend not connected yet (next stage: Supabase products/variants/orders)
+    <div className="empty-state" style={{ padding: '54px 20px' }}>
+      <div className="empty-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
       </div>
+      <h3>{title}</h3>
+      <p>{desc}</p>
     </div>
   )
 }

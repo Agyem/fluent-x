@@ -5,7 +5,7 @@ import type { Product, ProductVariant, ProductOption, ProductOptionValue, Varian
 import { Loading } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
 import { useCart } from '../context/CartContext'
-import { Package, Star, Truck, Shield, Clock } from 'lucide-react'
+import { Package, Truck, Shield, Clock } from 'lucide-react'
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -113,9 +113,7 @@ export default function ProductDetails() {
           <div className="pd-cat-link">{category?.name ?? 'Uncategorized'}</div>
           <h1 className="pd-title">{product.name}</h1>
           <div className="pd-rating-row">
-            <Star style={{ width: 14, height: 14, color: 'var(--warning)' }} />
-            <span>4.8</span>
-            <span style={{ color: 'var(--text-muted)' }}>(0 reviews)</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Be the first to review this product</span>
           </div>
         </div>
 
