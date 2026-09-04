@@ -57,6 +57,25 @@ export default function AccountPayments() {
           </table>
         </div>
       )}
+
+      <div className="card" style={{ padding: 20, marginTop: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>Payment Help</h3>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>CARTIVA aims to make your shopping experience simple and secure.</p>
+
+        <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Payment Methods</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>We accept the payment methods displayed on our website at checkout. Available payment options may vary depending on your location.</p>
+
+        <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Payment Confirmation</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>Your order will be processed once payment has been successfully confirmed. Please keep your payment confirmation or transaction details until your order has been received.</p>
+
+        <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Failed or Pending Payments</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>If your payment fails or remains pending, please avoid making multiple payments for the same order. Contact us with your order details so we can assist you.</p>
+
+        <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Payment Issues</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>If you have been charged but your order has not been confirmed, please contact CARTIVA customer support and provide your payment or transaction reference where available.</p>
+
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)' }}>For assistance with payment, please contact our support team.</p>
+      </div>
     </div>
   )
 }
