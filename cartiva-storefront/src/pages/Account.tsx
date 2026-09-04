@@ -7,7 +7,7 @@ import ErrorState from '../components/ErrorState'
 
 interface Order {
   id: string; status: string; total_amount: number; created_at: string;
-  order_items?: { product_id: string; quantity: number; products?: { name: string; thumbnail_path?: string }[] }[];
+  order_items?: { product_id: string; quantity: number; products?: { name: string }[] }[];
 }
 
 export default function Account() {
@@ -27,7 +27,7 @@ export default function Account() {
     async function load() {
       try {
         const [ordersRes, addrRes, wlRes, revRes] = await Promise.all([
-          supabase.from('orders').select('id, status, total_amount, created_at, order_items(product_id, quantity, products(name, thumbnail_path))').eq('customer_id', user!.id).order('created_at', { ascending: false }).limit(5),
+          supabase.from('orders').select('id, status, total_amount, created_at, order_items(product_id, quantity, products(name))').eq('customer_id', user!.id).order('created_at', { ascending: false }).limit(5),
           supabase.from('customer_addresses').select('id', { count: 'exact', head: true }).eq('customer_id', user!.id),
           supabase.from('wishlist_items').select('id', { count: 'exact', head: true }).eq('customer_id', user!.id),
           supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('customer_id', user!.id),

@@ -7,7 +7,7 @@ import ErrorState from '../../components/ErrorState'
 interface OrderDetail {
   id: string; status: string; total_amount: number; created_at: string;
   deliveries?: { method: string; status: string; tracking_number?: string; expected_delivery_date?: string }[];
-  order_items?: { quantity: number; unit_price: number; products?: { name: string; thumbnail_path?: string }[] }[];
+  order_items?: { quantity: number; unit_price: number; products?: { name: string }[] }[];
   order_payment_summary?: { method: string; amount: number; status: string }[];
 }
 
@@ -33,7 +33,7 @@ export default function AccountOrderDetails() {
     async function load() {
       try {
         const { data, error } = await supabase.from('orders')
-          .select('id, status, total_amount, created_at, deliveries(method, status, tracking_number, expected_delivery_date), order_items(quantity, unit_price, products(name, thumbnail_path)), order_payment_summary(method, amount, status)')
+          .select('id, status, total_amount, created_at, deliveries(method, status, tracking_number, expected_delivery_date), order_items(quantity, unit_price, products(name))')
           .eq('id', id!).single()
         if (error) throw error
         if (!cancelled) setOrder(data as OrderDetail)
