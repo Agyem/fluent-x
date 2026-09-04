@@ -79,7 +79,7 @@ export default function AccountAddresses() {
           <button className="btn primary" onClick={() => setShowModal(true)}>Add address</button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div className="offers-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
           {addresses.map(a => (
             <div key={a.id} className="card addr-card">
               <div className="addr-top">

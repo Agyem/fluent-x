@@ -396,6 +396,11 @@ a{color:inherit;}
 .coupon-card{position:relative;padding:16px 18px;overflow:hidden;border-style:dashed;}
 .coupon-code{font-family:'IBM Plex Mono',monospace;background:var(--surface-muted);border:1px dashed var(--border-strong);border-radius:8px;padding:5px 10px;font-size:12.5px;font-weight:600;display:inline-block;}
 
+/* ================= RESPONSIVE GRIDS ================= */
+.stats-grid{display:grid;gap:14px;}
+.detail-grid{display:grid;gap:16px;}
+.offers-grid{display:grid;gap:12px;}
+
 /* ================= FOOTER ================= */
 .site-footer{background:var(--ink);color:rgba(255,255,255,0.82);margin-top:44px;}
 .footer-inner{max-width:1180px;margin:0 auto;padding:44px 28px 26px;}
@@ -500,7 +505,16 @@ a{color:inherit;}
   .main{padding:0 14px 84px;}
   .topbar{display:none;}
   .mobile-topbar{display:block;}
-  .mobile-sheet,.mobile-sheet-inner{display:block;}
+  .mobile-sheet,.mobile-sheet-inner{display:none;}
+  .mobile-sheet.open,.mobile-sheet-inner.open{display:block;}
+  .stats-grid{grid-template-columns:repeat(2,1fr) !important;}
+  .detail-grid{grid-template-columns:1fr !important;}
+  .offers-grid{grid-template-columns:1fr !important;}
+  .welcome-banner{padding:18px 16px;}
+  .welcome-banner h2{font-size:17px;}
+  .rail{flex-wrap:wrap;gap:4px;}
+  .rail-label{font-size:9px;max-width:55px;}
+  .order-meta{gap:10px;}
 }
 
 @media (max-width:480px){
@@ -509,4 +523,6 @@ a{color:inherit;}
   .hero h1{font-size:18px;}
   .cat-strip{grid-template-columns:repeat(2,1fr);}
   .product-grid{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:1fr !important;}
+  .main{padding:0 10px 84px;}
 }

@@ -157,7 +157,7 @@ export default function AccountSupport() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+      <div className="offers-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
         {TOPICS.map(t => (
           <div key={t.title} className="card support-tile" style={{ cursor: 'pointer' }} onClick={() => setActive(t.key)}>
             <div className="support-icon">

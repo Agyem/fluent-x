@@ -16,7 +16,7 @@ export default function AccountCart() {
           <button className="btn primary" onClick={() => navigate('/catalogue')}>Browse products</button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, alignItems: 'start' }}>
+        <div className="detail-grid" style={{ gridTemplateColumns: '2fr 1fr', alignItems: 'start' }}>
           <div className="card" style={{ padding: 4 }}>
             {items.map(item => (
               <div key={item.product_id} className="product-row" style={{ padding: '14px 14px' }}>

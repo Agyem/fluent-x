@@ -65,7 +65,7 @@ export default function Account() {
         <p>Manage your orders, addresses, and account settings from here.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 22 }}>
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         {stats.map(s => (
           <div key={s.label} className="card qa-card" onClick={() => navigate(s.path)}>
             <div className="qa-icon" style={{ background: s.color, color: s.iconColor }}>

@@ -51,7 +51,7 @@ export default function AccountOffers() {
           <p>Check back later for exclusive deals and discounts.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div className="offers-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
           {coupons.map(c => (
             <div key={c.id} className={`card coupon-card${c.used ? ' used' : ''}`} style={{ opacity: c.used ? 0.5 : 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>

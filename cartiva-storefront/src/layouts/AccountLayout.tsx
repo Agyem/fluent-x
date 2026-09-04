@@ -155,9 +155,9 @@ export default function AccountLayout() {
         </div>
       </div>
 
-      {mobileOpen && <div className="mobile-sheet" onClick={() => setMobileOpen(false)} />}
+      {mobileOpen && <div className="mobile-sheet open" onClick={() => setMobileOpen(false)} />}
       {mobileOpen && (
-        <div className="mobile-sheet-inner">
+        <div className="mobile-sheet-inner open">
           <div className="brand" style={{ padding: '4px 0 16px' }}>
             <img src="/cartiva-logo.svg" alt="Cartiva" style={{ height: 36, width: 'auto' }} />
           </div>
