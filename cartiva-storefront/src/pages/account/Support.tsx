@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import type { ReactElement } from 'react'
 
 const TOPICS = [
   { title: 'Order issues', desc: 'Problems with your order, delivery, or returns', icon: 'bag' },
@@ -13,7 +13,7 @@ const TOPICS = [
 
 function TopicIcon({ name }: { name: string }) {
   const s = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
-  const icons: Record<string, JSX.Element> = {
+  const icons: Record<string, ReactElement> = {
     bag: <svg {...s}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
     card: <svg {...s}><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>,
     user: <svg {...s}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
@@ -27,8 +27,6 @@ function TopicIcon({ name }: { name: string }) {
 }
 
 export default function AccountSupport() {
-  const navigate = useNavigate()
-
   return (
     <div>
       <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>Help center</h2>

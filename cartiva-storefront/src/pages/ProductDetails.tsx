@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getProductById, getProductVariants, getProductOptions, getProductOptionValues, getVariantOptionValues, getProductImages, getPublicImageUrl, getActiveCategories } from '../lib/catalogue'
-import type { Product, ProductVariant, ProductOption, ProductOptionValue, VariantOptionValue, ProductImage, Category } from '../lib/catalogue'
+import { getProductById, getProductVariants, getProductOptions, getProductOptionValues, getProductImages, getPublicImageUrl, getActiveCategories } from '../lib/catalogue'
+import type { Product, ProductVariant, ProductOption, ProductOptionValue, ProductImage, Category } from '../lib/catalogue'
 import { Loading } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
 import { useCart } from '../context/CartContext'
@@ -16,7 +16,6 @@ export default function ProductDetails() {
   const [variants, setVariants] = useState<ProductVariant[] | null>(null)
   const [options, setOptions] = useState<ProductOption[] | null>(null)
   const [optionValues, setOptionValues] = useState<ProductOptionValue[] | null>(null)
-  const [variantOptionMap, setVariantOptionMap] = useState<VariantOptionValue[] | null>(null)
   const [images, setImages] = useState<ProductImage[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
@@ -52,12 +51,8 @@ export default function ProductDetails() {
           const vals = await getProductOptionValues(opts.map(o => o.id))
           if (cancelled) return
           setOptionValues(vals)
-          const vov = await getVariantOptionValues(vars.map(v => v.id))
-          if (cancelled) return
-          setVariantOptionMap(vov)
         } else {
           setOptionValues([])
-          setVariantOptionMap([])
         }
       } catch (e) {
         if (!cancelled) setErr((e as Error).message)
@@ -81,7 +76,7 @@ export default function ProductDetails() {
   const hasPrice = currentPrice != null && currentPrice !== 0
   const hasOldPrice = selectedVariant
     ? (selectedVariant.sale_price != null && selectedVariant.sale_price !== 0 && selectedVariant.sale_price < selectedVariant.price)
-    : (product.sale_price != null && product.sale_price !== 0 && product.sale_price < product.base_price)
+    : (product.sale_price != null && product.sale_price !== 0 && product.base_price != null && product.sale_price < product.base_price)
   const oldPrice = selectedVariant ? selectedVariant.price : product.base_price
 
   return (

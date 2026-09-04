@@ -4,15 +4,15 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import Placeholder from '../components/Placeholder'
-import { MOMO_CONFIG, isMomoConfigured } from '../lib/momoConfig'
+import { MOMO_CONFIG } from '../lib/momoConfig'
 import { SHIPPING_OPTIONS, getShippingFee, getExpectedDeliveryDate, type ShippingMethod } from '../lib/shipping'
-import { Package, Truck, CreditCard, CheckCircle } from 'lucide-react'
+import { Package, Truck, CreditCard } from 'lucide-react'
 
 export default function Checkout() {
   const { user, profile } = useAuth()
   const { items, subtotal: displaySubtotal, clear } = useCart()
   const navigate = useNavigate()
-  const [step, setStep] = useState(1)
+  const [step, _setStep] = useState(1)
   const [paymentMethod, setPaymentMethod] = useState<'momo' | ''>('')
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod | ''>('')
   const [deliveryAddress, setDeliveryAddress] = useState('')

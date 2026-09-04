@@ -8,7 +8,7 @@ import ErrorState from '../../components/ErrorState'
 interface Order {
   id: string; status: string; total: number; created_at: string;
   deliveries?: { method: string; status: string }[];
-  order_items?: { quantity: number; products?: { name: string } }[];
+  order_items?: { quantity: number; products?: { name: string }[] }[];
 }
 
 const TABS = ['All', 'Active', 'Delivered', 'Cancelled']

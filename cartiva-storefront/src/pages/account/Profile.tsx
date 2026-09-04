@@ -5,7 +5,7 @@ import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
 
 export default function AccountProfile() {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   const [form, setForm] = useState({ full_name: '', email: '', phone: '' })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)

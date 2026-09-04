@@ -90,13 +90,6 @@ export default function Catalogue() {
   }
 
   const activeCat = categoryFilter ? cats.find(c => c.id === categoryFilter) : null
-  const catColors: Record<string, string> = {
-    'Smartphones': 'bg-red-100 text-red-600',
-    'Laptops': 'bg-blue-100 text-blue-600',
-    'Audio & Wearables': 'bg-green-100 text-green-600',
-    'Accessories': 'bg-orange-100 text-orange-700',
-    'Home Appliances': 'bg-purple-100 text-purple-600',
-  }
 
   return (
     <>
@@ -143,12 +136,11 @@ export default function Catalogue() {
                 const hasPrice = displayPrice != null && displayPrice !== 0
                 const catName = displayCategoryName(cats.find(c => c.id === p.category_id)?.name ?? 'Uncategorized')
                 const hasImage = imageMap[p.id]
-                const colorClass = catColors[catName] || 'bg-zinc-200 text-zinc-400'
                 return (
                   <Link key={p.id} to={`/product/${p.id}`} className="card product-card">
                     <div className="pc-image">
                       {hasImage ? (
-                        <img src={getPublicImageUrl(p.id)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={getPublicImageUrl(p.id) ?? undefined} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <Package />
                       )}

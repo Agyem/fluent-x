@@ -7,7 +7,7 @@ import ErrorState from '../components/ErrorState'
 
 interface Order {
   id: string; status: string; total: number; created_at: string;
-  order_items?: { product_id: string; quantity: number; products?: { name: string; thumbnail_path?: string } }[];
+  order_items?: { product_id: string; quantity: number; products?: { name: string; thumbnail_path?: string }[] }[];
 }
 
 export default function Account() {

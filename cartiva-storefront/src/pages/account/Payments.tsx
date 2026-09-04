@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
 
-interface Payment { id: string; amount: number; method: string; status: string; created_at: string; orders?: { id: string } }
+interface Payment { id: string; amount: number; method: string; status: string; created_at: string; orders?: { id: string }[] }
 
 export default function AccountPayments() {
   const { user } = useAuth()
@@ -47,7 +47,7 @@ export default function AccountPayments() {
               {payments.map(p => (
                 <tr key={p.id}>
                   <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(p.created_at).toLocaleDateString()}</td>
-                  <td className="mono" style={{ fontSize: 12 }}>#{p.orders?.id?.slice(0, 8) || '—'}</td>
+                  <td className="mono" style={{ fontSize: 12 }}>#{p.orders?.[0]?.id?.slice(0, 8) || '—'}</td>
                   <td style={{ textTransform: 'capitalize' }}>{p.method}</td>
                   <td className="mono" style={{ fontWeight: 600 }}>GH₵ {Number(p.amount).toFixed(2)}</td>
                   <td><span className="pill" style={{ background: p.status === 'verified' ? 'var(--success-light)' : 'var(--warning-light)', color: p.status === 'verified' ? 'var(--success)' : 'var(--warning)', fontSize: 11 }}>{p.status}</span></td>

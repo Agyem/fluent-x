@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
 
-interface Review { id: string; rating: number; comment: string; status: string; created_at: string; products?: { name: string } }
+interface Review { id: string; rating: number; comment: string; status: string; created_at: string; products?: { name: string }[] }
 
 export default function AccountReviews() {
   const { user } = useAuth()
@@ -52,7 +52,7 @@ export default function AccountReviews() {
             <div key={r.id} className="product-row" style={{ padding: '14px 14px', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <div className="product-name">{r.products?.name || 'Product'}</div>
+                  <div className="product-name">{r.products?.[0]?.name || 'Product'}</div>
                   <div className="star-row readonly" style={{ marginTop: 4 }}>
                     {[1, 2, 3, 4, 5].map(s => (
                       <svg key={s} className={s <= r.rating ? 'on' : ''} width="14" height="14" viewBox="0 0 24 24" fill={s <= r.rating ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>

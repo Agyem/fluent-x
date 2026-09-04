@@ -6,7 +6,7 @@ import { useCart } from '../../context/CartContext'
 import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
 
-interface WishlistItem { id: string; product_id: string; created_at: string; products?: { id: string; name: string; thumbnail_path?: string; active: boolean } }
+interface WishlistItem { id: string; product_id: string; created_at: string; products?: { id: string; name: string; thumbnail_path?: string; active: boolean }[] }
 
 export default function AccountWishlist() {
   const { user } = useAuth()
@@ -37,8 +37,9 @@ export default function AccountWishlist() {
   }
 
   async function moveToCart(item: WishlistItem) {
-    if (!item.products) return
-    addItem({ productId: item.products.id, name: item.products.name, unit_price: 0, quantity: 1 })
+    const p = item.products?.[0]
+    if (!p) return
+    addItem({ product_id: item.product_id, variant_id: item.product_id, product_name: p.name, variant_name: null, sku: null, unit_price: 0, quantity: 1 })
     await removeItem(item.id)
   }
 
@@ -59,11 +60,11 @@ export default function AccountWishlist() {
         <div className="card" style={{ padding: 4 }}>
           {items.map(item => (
             <div key={item.id} className="product-row" style={{ padding: '14px 14px' }}>
-              <div className="product-thumb" style={{ cursor: 'pointer' }} onClick={() => item.products && navigate(`/product/${item.products.id}`)}>
+              <div className="product-thumb" style={{ cursor: 'pointer' }} onClick={() => item.products?.[0] && navigate(`/product/${item.products[0].id}`)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div className="product-name" style={{ cursor: 'pointer' }} onClick={() => item.products && navigate(`/product/${item.products.id}`)}>{item.products?.name || 'Product'}</div>
+                <div className="product-name" style={{ cursor: 'pointer' }} onClick={() => item.products?.[0] && navigate(`/product/${item.products[0].id}`)}>{item.products?.[0]?.name || 'Product'}</div>
                 <div className="product-var">Added {new Date(item.created_at).toLocaleDateString()}</div>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>

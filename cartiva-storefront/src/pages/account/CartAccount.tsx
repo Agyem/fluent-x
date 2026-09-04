@@ -19,21 +19,21 @@ export default function AccountCart() {
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, alignItems: 'start' }}>
           <div className="card" style={{ padding: 4 }}>
             {items.map(item => (
-              <div key={item.productId} className="product-row" style={{ padding: '14px 14px' }}>
+              <div key={item.product_id} className="product-row" style={{ padding: '14px 14px' }}>
                 <div className="product-thumb">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div className="product-name">{item.name}</div>
-                  {item.variant && <div className="product-var">{item.variant}</div>}
+                  <div className="product-name">{item.product_name}</div>
+                  {item.variant_name && <div className="product-var">{item.variant_name}</div>}
                 </div>
                 <div className="qty-stepper">
-                  <button onClick={() => decrease(item.productId)}>-</button>
+                  <button onClick={() => decrease(item.variant_id)}>-</button>
                   <span className="mono" style={{ fontWeight: 600, minWidth: 20, textAlign: 'center' }}>{item.quantity}</span>
-                  <button onClick={() => increase(item.productId)}>+</button>
+                  <button onClick={() => increase(item.variant_id)}>+</button>
                 </div>
                 <div className="product-price">GH₵ {(item.unit_price * item.quantity).toFixed(2)}</div>
-                <button className="btn sm ghost" style={{ color: 'var(--danger)' }} onClick={() => removeItem(item.productId)}>✕</button>
+                <button className="btn sm ghost" style={{ color: 'var(--danger)' }} onClick={() => removeItem(item.variant_id)}>✕</button>
               </div>
             ))}
           </div>

@@ -1,12 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Search, ShoppingCart, Menu, X, Home, ShoppingBag, Heart, Bell, Settings, LogOut } from 'lucide-react'
+import { Search, ShoppingCart, Home, ShoppingBag, Heart, Bell, Settings, LogOut } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import FloatingCart from './FloatingCart'
 
 export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [q, setQ] = useState('')

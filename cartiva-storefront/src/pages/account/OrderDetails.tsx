@@ -7,7 +7,7 @@ import ErrorState from '../../components/ErrorState'
 interface OrderDetail {
   id: string; status: string; total: number; shipping_fee: number; created_at: string;
   deliveries?: { method: string; status: string; tracking_number?: string; estimated_date?: string }[];
-  order_items?: { quantity: number; unit_price: number; products?: { name: string; thumbnail_path?: string } }[];
+  order_items?: { quantity: number; unit_price: number; products?: { name: string; thumbnail_path?: string }[] }[];
   order_payment_summary?: { method: string; amount: number; status: string }[];
 }
 
@@ -81,7 +81,7 @@ export default function AccountOrderDetails() {
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div className="product-name">{item.products?.name || 'Product'}</div>
+                <div className="product-name">{item.products?.[0]?.name || 'Product'}</div>
                 <div className="product-var">Qty: {item.quantity}</div>
               </div>
               <div className="product-price">GH₵ {(Number(item.unit_price) * item.quantity).toFixed(2)}</div>

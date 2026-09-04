@@ -6,7 +6,7 @@ import { SkeletonCard } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
 import Placeholder from '../components/Placeholder'
 import { displayCategoryName } from '../lib/categoryDisplay'
-import { Package, Heart } from 'lucide-react'
+import { Package } from 'lucide-react'
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -62,7 +62,6 @@ export default function Home() {
   if (err) return <ErrorState message={err} onRetry={() => location.reload()} />
   const loading = cats === null || products === null
 
-  const catColors = ['bg-red-100 text-red-600', 'bg-blue-100 text-blue-600', 'bg-green-100 text-green-600', 'bg-orange-100 text-orange-700', 'bg-purple-100 text-purple-600', 'bg-yellow-100 text-yellow-700']
   const catIcons = ['📱', '💻', '🎧', '🔌', '🏠', '📦']
 
   return (
@@ -99,7 +98,7 @@ export default function Home() {
               <Link key={p.id} to={`/product/${p.id}`} className="card product-card">
                 <div className="pc-image">
                   {hasImage ? (
-                    <img src={getPublicImageUrl(p.id)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={getPublicImageUrl(p.id) ?? undefined} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <Package />
                   )}
