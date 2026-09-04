@@ -60,7 +60,7 @@ export default function Login() {
           </div>
           {err && <div style={{ padding: '8px 12px', borderRadius: 9, background: 'var(--danger-light)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: 13 }}>{err}</div>}
           <button disabled={loading} className="btn primary block" style={{ opacity: loading ? 0.5 : 1 }}>{loading ? 'Signing in...' : 'Log in'}</button>
-          <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--text-muted)' }}>No account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600 }}>Create account</Link></div>
+          <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--text-muted)' }}>Need an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600 }}>Contact support</Link></div>
         </form>
       </div>
     </div>
