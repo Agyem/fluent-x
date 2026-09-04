@@ -40,7 +40,6 @@ export default function Footer() {
           <div className="footer-col footer-brand">
             <div className="brand">
               <img src="/cartiva-logo.svg" alt="Cartiva" style={{ height: 40, width: 'auto' }} />
-              <span className="footer-wordmark">Cartiva</span>
             </div>
             <p>Everything for campus life, delivered to your hall.</p>
             <p>Cartiva makes everyday shopping convenient for university students and young customers — from lecture-hall essentials to hostel upgrades, ordered in a few taps and delivered where you live.</p>
