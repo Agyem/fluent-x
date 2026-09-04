@@ -5,6 +5,8 @@ import type { Product, ProductVariant, ProductOption, ProductOptionValue, Produc
 import { Loading } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 import { Package, Truck, Shield, Clock } from 'lucide-react'
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -21,7 +23,9 @@ export default function ProductDetails() {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const [qty, setQty] = useState(1)
   const { addItem } = useCart()
+  const { user } = useAuth()
   const [added, setAdded] = useState(false)
+  const [inWishlist, setInWishlist] = useState(false)
 
   useEffect(() => {
     if (!id) { setProduct(null); return }
@@ -61,6 +65,25 @@ export default function ProductDetails() {
     load()
     return () => { cancelled = true }
   }, [id])
+
+  useEffect(() => {
+    if (!user || !id) return
+    supabase.from('wishlist_items').select('id').eq('customer_id', user.id).eq('product_id', id).maybeSingle().then(({ data }) => {
+      setInWishlist(!!data)
+    })
+  }, [user, id])
+
+  const toggleWishlist = async () => {
+    if (!user) { window.location.href = '/login'; return }
+    if (!id) return
+    if (inWishlist) {
+      await supabase.from('wishlist_items').delete().eq('customer_id', user.id).eq('product_id', id)
+      setInWishlist(false)
+    } else {
+      const { error } = await supabase.from('wishlist_items').insert({ customer_id: user.id, product_id: id })
+      if (!error) setInWishlist(true)
+    }
+  }
 
   if (err) return <ErrorState message={err} onRetry={() => location.reload()} />
   if (product === undefined) return <Loading label="Loading product..." />
@@ -174,6 +197,10 @@ export default function ProductDetails() {
             }}
           >
             {added ? 'Added ✓' : 'Add to cart'}
+          </button>
+          <button className={`btn${inWishlist ? '' : ' ghost'}`} onClick={toggleWishlist} style={inWishlist ? { color: 'var(--danger)', borderColor: 'var(--danger-light)', background: 'var(--danger-light)' } : {}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            {inWishlist ? 'Wishlisted' : 'Wishlist'}
           </button>
         </div>
 

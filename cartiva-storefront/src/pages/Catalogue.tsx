@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getActiveCategories, getActiveProducts, getProductImages, getPublicImageUrl, getProductVariants } from '../lib/catalogue'
 import type { Category, Product } from '../lib/catalogue'
@@ -7,10 +7,13 @@ import ErrorState from '../components/ErrorState'
 import Placeholder from '../components/Placeholder'
 import { displayCategoryName } from '../lib/categoryDisplay'
 import { Package } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export default function Catalogue() {
+  const { user } = useAuth()
   const [params, setParams] = useSearchParams()
   const search = (params.get('search') ?? '').toLowerCase()
   const categoryFilter = params.get('category') ?? ''
@@ -20,6 +23,7 @@ export default function Catalogue() {
   const [products, setProducts] = useState<Product[] | null>(null)
   const [variantPrices, setVariantPrices] = useState<Record<string, number | null>>({})
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set())
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
@@ -54,13 +58,31 @@ export default function Catalogue() {
           }
         }))
         if (!cancelled) { setImageUrls(urlMap); setVariantPrices(priceMap) }
+
+        if (user) {
+          const { data: wl } = await supabase.from('wishlist_items').select('product_id').eq('customer_id', user.id)
+          if (!cancelled && wl) setWishlist(new Set(wl.map((w: { product_id: string }) => w.product_id)))
+        }
       } catch (e) {
         if (!cancelled) setErr((e as Error).message)
       }
     }
     load()
     return () => { cancelled = true }
-  }, [])
+  }, [user])
+
+  const toggleWishlist = useCallback(async (productId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!user) { window.location.href = '/login'; return }
+    if (wishlist.has(productId)) {
+      await supabase.from('wishlist_items').delete().eq('customer_id', user.id).eq('product_id', productId)
+      setWishlist(prev => { const next = new Set(prev); next.delete(productId); return next })
+    } else {
+      const { error } = await supabase.from('wishlist_items').insert({ customer_id: user.id, product_id: productId })
+      if (!error) setWishlist(prev => new Set(prev).add(productId))
+    }
+  }, [user, wishlist])
 
   const filtered = useMemo(() => {
     if (!products) return null
@@ -144,6 +166,9 @@ export default function Catalogue() {
                       ) : (
                         <Package />
                       )}
+                      <div className={`pc-wish${wishlist.has(p.id) ? ' active' : ''}`} onClick={e => toggleWishlist(p.id, e)}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill={wishlist.has(p.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                      </div>
                     </div>
                     <div className="pc-body">
                       <div className="pc-cat">{catName}</div>
