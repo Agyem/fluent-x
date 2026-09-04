@@ -70,7 +70,7 @@ export default function AccountLayout() {
     <div id="app-shell">
       <aside className="sidebar">
         <div className="brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <img src="/new_logo-removebg-preview%20(1).png" alt="Cartiva" style={{ height: 36, width: 'auto' }} />
+            <img src="/cartiva-logo.svg" alt="Cartiva" style={{ height: 36, width: 'auto' }} />
           <span className="brand-name">Cartiva</span>
         </div>
 
@@ -164,7 +164,7 @@ export default function AccountLayout() {
       {mobileOpen && (
         <div className="mobile-sheet-inner">
           <div className="brand" style={{ padding: '4px 0 16px' }}>
-            <img src="/new_logo-removebg-preview%20(1).png" alt="Cartiva" style={{ height: 36, width: 'auto' }} />
+          <img src="/cartiva-logo.svg" alt="Cartiva" style={{ height: 36, width: 'auto' }} />
             <span className="brand-name">Cartiva</span>
           </div>
           {NAV.map(g => (
