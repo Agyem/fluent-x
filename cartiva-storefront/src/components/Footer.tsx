@@ -20,17 +20,17 @@ export default function Footer() {
   ]
 
   const supportLinks = [
-    { label: 'Help & support', action: () => {} },
-    { label: 'Contact us', action: () => {} },
-    { label: 'FAQs', action: () => {} },
-    { label: 'Delivery information', action: () => {} },
-    { label: 'Payment information', action: () => {} },
-    { label: 'Returns & refunds', action: () => {} },
+    { label: 'Help & support', action: () => navigate('/account/support') },
+    { label: 'Contact us', action: () => navigate('/account/support') },
+    { label: 'FAQs', action: () => navigate('/account/support') },
+    { label: 'Delivery information', action: () => navigate('/account/support') },
+    { label: 'Payment information', action: () => navigate('/account/support') },
+    { label: 'Returns & refunds', action: () => navigate('/account/support') },
   ]
 
   const legalLinks = [
-    { label: 'Privacy policy', action: () => {} },
-    { label: 'Terms & conditions', action: () => {} },
+    { label: 'Privacy policy', action: () => navigate('/account/support') },
+    { label: 'Terms & conditions', action: () => navigate('/account/support') },
   ]
 
   return (
