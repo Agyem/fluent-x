@@ -70,9 +70,7 @@ export default function AccountLayout() {
     <div id="app-shell">
       <aside className="sidebar">
         <div className="brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <div className="brand-mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          </div>
+          <img src="/logo.svg" alt="Cartiva" className="brand-mark" style={{ width: 32, height: 32, borderRadius: 8 }} />
           <span className="brand-name">Cartiva</span>
         </div>
 
@@ -166,9 +164,7 @@ export default function AccountLayout() {
       {mobileOpen && (
         <div className="mobile-sheet-inner">
           <div className="brand" style={{ padding: '4px 0 16px' }}>
-            <div className="brand-mark">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-            </div>
+            <img src="/logo.svg" alt="Cartiva" className="brand-mark" style={{ width: 32, height: 32, borderRadius: 8 }} />
             <span className="brand-name">Cartiva</span>
           </div>
           {NAV.map(g => (

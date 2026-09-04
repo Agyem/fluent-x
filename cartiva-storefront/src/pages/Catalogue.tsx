@@ -82,11 +82,12 @@ export default function Catalogue() {
     e.stopPropagation()
     if (!user) { window.location.href = '/login'; return }
     if (wishlist.has(productId)) {
-      await supabase.from('wishlist_items').delete().eq('customer_id', user.id).eq('product_id', productId)
-      setWishlist(prev => { const next = new Set(prev); next.delete(productId); return next })
+      const { error } = await supabase.from('wishlist_items').delete().eq('customer_id', user.id).eq('product_id', productId)
+      if (!error) setWishlist(prev => { const next = new Set(prev); next.delete(productId); return next })
     } else {
       const { error } = await supabase.from('wishlist_items').insert({ customer_id: user.id, product_id: productId })
-      if (!error) setWishlist(prev => new Set(prev).add(productId))
+      if (error) { console.error('[wishlist]', error.message); alert('Wishlist is not available yet — run the SQL migration first.'); return }
+      setWishlist(prev => new Set(prev).add(productId))
     }
   }, [user, wishlist])
 
