@@ -19,7 +19,10 @@ export default function AccountReviews() {
     async function load() {
       try {
         const { data, error } = await supabase.from('reviews').select('id, rating, comment, status, created_at, products(name)').eq('customer_id', user!.id).order('created_at', { ascending: false })
-        if (error) throw error
+        if (error) {
+          if ((error as { code?: string }).code === '42P01') { if (!cancelled) setReviews([]); return }
+          throw error
+        }
         if (!cancelled) setReviews((data || []) as Review[])
       } catch (e) { if (!cancelled) setErr((e as Error).message) }
       finally { if (!cancelled) setLoading(false) }

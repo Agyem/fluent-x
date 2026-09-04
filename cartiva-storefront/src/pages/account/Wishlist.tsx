@@ -6,7 +6,7 @@ import { useCart } from '../../context/CartContext'
 import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
 
-interface WishlistItem { id: string; product_id: string; created_at: string; products?: { id: string; name: string; thumbnail_path?: string; active: boolean }[] }
+interface WishlistItem { id: string; product_id: string; created_at: string; products?: { id: string; name: string; active: boolean }[] }
 
 export default function AccountWishlist() {
   const { user } = useAuth()
@@ -21,7 +21,7 @@ export default function AccountWishlist() {
     let cancelled = false
     async function load() {
       try {
-        const { data, error } = await supabase.from('wishlist_items').select('id, product_id, created_at, products(id, name, thumbnail_path, active)').eq('customer_id', user!.id).order('created_at', { ascending: false })
+        const { data, error } = await supabase.from('wishlist_items').select('id, product_id, created_at, products(id, name, active)').eq('customer_id', user!.id).order('created_at', { ascending: false })
         if (error) throw error
         if (!cancelled) setItems((data || []) as WishlistItem[])
       } catch (e) { if (!cancelled) setErr((e as Error).message) }

@@ -18,7 +18,10 @@ export default function AccountPayments() {
     async function load() {
       try {
         const { data, error } = await supabase.from('order_payment_summary').select('id, amount, method, status, created_at, orders(id)').eq('customer_id', user!.id).order('created_at', { ascending: false })
-        if (error) throw error
+        if (error) {
+          if ((error as { code?: string }).code === '42P01' || (error as { code?: string }).code === '42703') { if (!cancelled) setPayments([]); return }
+          throw error
+        }
         if (!cancelled) setPayments((data || []) as Payment[])
       } catch (e) { if (!cancelled) setErr((e as Error).message) }
       finally { if (!cancelled) setLoading(false) }

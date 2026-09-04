@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
 
-interface Coupon { id: string; code: string; description: string; discount_percent: number; valid_until: string; used: boolean }
+interface Coupon { id: string; code: string; description?: string; discount_percent: number; valid_until: string; used: boolean }
 
 export default function AccountOffers() {
   const { user } = useAuth()
@@ -18,7 +18,7 @@ export default function AccountOffers() {
     let cancelled = false
     async function load() {
       try {
-        const { data, error } = await supabase.from('coupons').select('id, code, description, discount_percent, valid_until, used').eq('customer_id', user!.id).order('valid_until', { ascending: false })
+        const { data, error } = await supabase.from('coupons').select('id, code, discount_percent, valid_until, used').eq('customer_id', user!.id).order('valid_until', { ascending: false })
         if (error && (error as { code?: string }).code !== '42P01') throw error
         if (!cancelled) setCoupons((data || []) as Coupon[])
       } catch (e) { if (!cancelled) setErr((e as Error).message) }
