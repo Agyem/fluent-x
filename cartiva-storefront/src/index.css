@@ -224,10 +224,11 @@ a{color:inherit;}
 .pc-add{
   padding:6px 14px;border-radius:8px;border:none;cursor:pointer;
   font-size:12px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:0.2px;
-  background:var(--surface-muted);color:var(--text);
-  transition:background .12s ease, color .12s ease;white-space:nowrap;flex-shrink:0;
+  background:var(--primary);color:#fff;
+  transition:background .12s ease, transform .1s ease;white-space:nowrap;flex-shrink:0;
 }
-.pc-add:hover{background:var(--primary);color:#fff;}
+.pc-add:hover{background:var(--primary-dark);transform:scale(1.04);}
+.pc-add:active{transform:scale(0.97);}
 
 /* ================= STOREFRONT: CATEGORY LAYOUT ================= */
 .cat-layout{display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start;}

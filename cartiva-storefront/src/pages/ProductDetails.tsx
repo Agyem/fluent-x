@@ -21,6 +21,7 @@ export default function ProductDetails() {
   const [images, setImages] = useState<ProductImage[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null)
   const [qty, setQty] = useState(1)
   const { addItem } = useCart()
   const { user } = useAuth()
@@ -90,7 +91,7 @@ export default function ProductDetails() {
   if (product === null) return <div className="space-y-4"><ErrorState message="Product not found or inactive." /><Link to="/catalogue" className="btn primary">Back to catalogue</Link></div>
 
   const selectedVariant = variants?.find(v => v.id === selectedVariantId) ?? null
-  const primaryImage = images?.find(i => i.is_primary) ?? images?.[0] ?? null
+  const primaryImage = (selectedImageId ? images?.find(i => i.id === selectedImageId) : null) ?? images?.find(i => i.is_primary) ?? images?.[0] ?? null
   const publicUrl = primaryImage?.storage_path ? getPublicImageUrl(primaryImage.storage_path) : null
 
   const currentPrice = selectedVariant
@@ -117,7 +118,7 @@ export default function ProductDetails() {
             {images.map(img => {
               const url = img.storage_path ? getPublicImageUrl(img.storage_path) : null
               return (
-                <div key={img.id} className={`pd-thumb ${img.id === primaryImage?.id ? 'active' : ''}`}>
+                <div key={img.id} className={`pd-thumb ${img.id === primaryImage?.id ? 'active' : ''}`} onClick={() => setSelectedImageId(img.id)} style={{ cursor: 'pointer' }}>
                   {url ? <img src={url} alt="" /> : <Package />}
                 </div>
               )
