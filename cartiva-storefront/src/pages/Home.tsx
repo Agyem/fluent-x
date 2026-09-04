@@ -14,7 +14,7 @@ export default function Home() {
   const [cats, setCats] = useState<Category[] | null>(null)
   const [products, setProducts] = useState<Product[] | null>(null)
   const [variantPrices, setVariantPrices] = useState<Record<string, number | null>>({})
-  const [imageMap, setImageMap] = useState<Record<string, boolean>>({})
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function Home() {
         if (cancelled) return
         setCats(c); setProducts(p)
         const priceMap: Record<string, number | null> = {}
-        const imgMap: Record<string, boolean> = {}
+        const urlMap: Record<string, string> = {}
         await Promise.all(p.map(async prod => {
           if (prod.product_type === 'variable') {
             try {
@@ -46,11 +46,12 @@ export default function Home() {
           try {
             const imgs = await getProductImages(prod.id)
             if (imgs.length > 0 && imgs[0].storage_path) {
-              imgMap[prod.id] = !!getPublicImageUrl(imgs[0].storage_path)
-            } else imgMap[prod.id] = false
-          } catch { imgMap[prod.id] = false }
+              const url = getPublicImageUrl(imgs[0].storage_path)
+              if (url) urlMap[prod.id] = url
+            }
+          } catch { /* no image */ }
         }))
-        if (!cancelled) { setVariantPrices(priceMap); setImageMap(imgMap) }
+        if (!cancelled) { setVariantPrices(priceMap); setImageUrls(urlMap) }
       } catch (e) {
         if (!cancelled) setErr((e as Error).message)
       }
@@ -93,12 +94,12 @@ export default function Home() {
             const displayPrice = variantPrices[p.id] ?? (p.sale_price ?? p.base_price)
             const hasPrice = displayPrice != null && displayPrice !== 0
             const catName = displayCategoryName(cats?.find(c => c.id === p.category_id)?.name ?? 'Uncategorized')
-            const hasImage = imageMap[p.id]
+            const imgUrl = imageUrls[p.id]
             return (
               <Link key={p.id} to={`/product/${p.id}`} className="card product-card">
                 <div className="pc-image">
-                  {hasImage ? (
-                    <img src={getPublicImageUrl(p.id) ?? undefined} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {imgUrl ? (
+                    <img src={imgUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <Package />
                   )}

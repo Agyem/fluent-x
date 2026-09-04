@@ -19,7 +19,7 @@ export default function Catalogue() {
   const [cats, setCats] = useState<Category[] | null>(null)
   const [products, setProducts] = useState<Product[] | null>(null)
   const [variantPrices, setVariantPrices] = useState<Record<string, number | null>>({})
-  const [imageMap, setImageMap] = useState<Record<string, boolean>>({})
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
@@ -30,16 +30,16 @@ export default function Catalogue() {
         if (cancelled) return
         setCats(c)
         setProducts(p)
-        const entries: Record<string, boolean> = {}
+        const urlMap: Record<string, string> = {}
         const priceMap: Record<string, number | null> = {}
         await Promise.all(p.map(async prod => {
           try {
             const imgs = await getProductImages(prod.id)
             if (imgs.length > 0 && imgs[0].storage_path) {
               const url = getPublicImageUrl(imgs[0].storage_path)
-              entries[prod.id] = !!url
-            } else entries[prod.id] = false
-          } catch { entries[prod.id] = false }
+              if (url) urlMap[prod.id] = url
+            }
+          } catch { /* no image */ }
           if (prod.product_type === 'variable') {
             try {
               const vars = await getProductVariants(prod.id)
@@ -53,7 +53,7 @@ export default function Catalogue() {
             priceMap[prod.id] = prod.sale_price ?? prod.base_price ?? null
           }
         }))
-        if (!cancelled) { setImageMap(entries); setVariantPrices(priceMap) }
+        if (!cancelled) { setImageUrls(urlMap); setVariantPrices(priceMap) }
       } catch (e) {
         if (!cancelled) setErr((e as Error).message)
       }
@@ -135,12 +135,12 @@ export default function Catalogue() {
                 const displayPrice = variantPrices[p.id] ?? (p.sale_price ?? p.base_price)
                 const hasPrice = displayPrice != null && displayPrice !== 0
                 const catName = displayCategoryName(cats.find(c => c.id === p.category_id)?.name ?? 'Uncategorized')
-                const hasImage = imageMap[p.id]
+                const imgUrl = imageUrls[p.id]
                 return (
                   <Link key={p.id} to={`/product/${p.id}`} className="card product-card">
                     <div className="pc-image">
-                      {hasImage ? (
-                        <img src={getPublicImageUrl(p.id) ?? undefined} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      {imgUrl ? (
+                        <img src={imgUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <Package />
                       )}
