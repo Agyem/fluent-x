@@ -8,7 +8,6 @@ interface OrderDetail {
   id: string; status: string; total_amount: number; created_at: string;
   deliveries?: { method: string; status: string; tracking_number?: string; expected_delivery_date?: string }[];
   order_items?: { quantity: number; unit_price: number; products?: { name: string }[] }[];
-  order_payment_summary?: { method: string; amount: number; status: string }[];
 }
 
 const STATUS_MAP: Record<string, number> = {
@@ -109,15 +108,6 @@ export default function AccountOrderDetails() {
               <div style={{ fontSize: 13 }}><span style={{ color: 'var(--text-muted)' }}>Method:</span> {order.deliveries[0].method === 'air' ? 'Air Freight' : 'Sea Freight'}</div>
               {order.deliveries[0].tracking_number && <div style={{ fontSize: 13, marginTop: 4 }}><span style={{ color: 'var(--text-muted)' }}>Tracking:</span> {order.deliveries[0].tracking_number}</div>}
               {order.deliveries[0].expected_delivery_date && <div style={{ fontSize: 13, marginTop: 4 }}><span style={{ color: 'var(--text-muted)' }}>Est. delivery:</span> {new Date(order.deliveries[0].expected_delivery_date).toLocaleDateString()}</div>}
-            </div>
-          )}
-
-          {order.order_payment_summary?.[0] && (
-            <div className="card" style={{ padding: 18 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Payment</h3>
-              <div style={{ fontSize: 13 }}><span style={{ color: 'var(--text-muted)' }}>Method:</span> {order.order_payment_summary[0].method}</div>
-              <div style={{ fontSize: 13, marginTop: 4 }}><span style={{ color: 'var(--text-muted)' }}>Amount:</span> <span className="mono" style={{ fontWeight: 600 }}>GH₵ {Number(order.order_payment_summary[0].amount).toFixed(2)}</span></div>
-              <div style={{ fontSize: 13, marginTop: 4 }}><span style={{ color: 'var(--text-muted)' }}>Status:</span> <span style={{ color: order.order_payment_summary[0].status === 'verified' ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>{order.order_payment_summary[0].status}</span></div>
             </div>
           )}
         </div>

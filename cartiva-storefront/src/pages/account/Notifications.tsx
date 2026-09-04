@@ -18,7 +18,10 @@ export default function AccountNotifications() {
     async function load() {
       try {
         const { data, error } = await supabase.from('notifications').select('*').eq('customer_id', user!.id).order('created_at', { ascending: false }).limit(50)
-        if (error) throw error
+        if (error) {
+          if ((error as { code?: string }).code === '42P01') { if (!cancelled) setNotifications([]); return }
+          throw error
+        }
         if (!cancelled) setNotifications((data || []) as Notification[])
       } catch (e) { if (!cancelled) setErr((e as Error).message) }
       finally { if (!cancelled) setLoading(false) }

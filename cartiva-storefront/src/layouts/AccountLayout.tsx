@@ -14,7 +14,6 @@ const NAV = [
   { group: 'Activity', items: [
     { path: '/account/reviews', label: 'Reviews', icon: 'star' },
     { path: '/account/notifications', label: 'Notifications', icon: 'bell' },
-    { path: '/account/payments', label: 'Payments', icon: 'card' },
     { path: '/account/offers', label: 'Offers', icon: 'tag' },
   ]},
   { group: 'Support', items: [
@@ -104,14 +103,11 @@ export default function AccountLayout() {
 
       <div className="main">
         <div className="topbar">
-          <div className="topbar-search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="text" placeholder="Search orders, products..." />
-          </div>
+
           <div className="topbar-right" ref={ddRef}>
             <button className="icon-btn" onClick={() => navigate('/account/notifications')}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-              <span className="dot" />
+
             </button>
             <div className="avatar sm" onClick={() => setDdOpen(!ddOpen)}>{initials}</div>
             {ddOpen && (

@@ -1,66 +1,13 @@
-import { useState } from 'react'
-
-interface Setting { key: string; label: string; desc: string; defaultOn: boolean }
-
-const SETTINGS: Setting[] = [
-  { key: 'email_orders', label: 'Order updates', desc: 'Receive email notifications for order status changes.', defaultOn: true },
-  { key: 'email_promotions', label: 'Promotions', desc: 'Receive emails about sales, discounts, and new products.', defaultOn: false },
-  { key: 'email_newsletter', label: 'Newsletter', desc: 'Weekly digest of trending products and tech news.', defaultOn: false },
-  { key: 'sms_updates', label: 'SMS updates', desc: 'Get text messages for delivery notifications.', defaultOn: true },
-  { key: 'push_enabled', label: 'Push notifications', desc: 'Browser push notifications for real-time updates.', defaultOn: false },
-]
-
 export default function AccountSettings() {
-  const [settings, setSettings] = useState<Record<string, boolean>>(
-    Object.fromEntries(SETTINGS.map(s => [s.key, s.defaultOn]))
-  )
-  const [saved, setSaved] = useState(false)
-
-  function toggle(key: string) {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }))
-    setSaved(false)
-  }
-
-  function handleSave() {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
-  }
-
   return (
     <div>
       <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Settings</h2>
 
-      <div className="card" style={{ padding: 18, maxWidth: 520, marginBottom: 16 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>Notifications</h3>
-        {SETTINGS.map(s => (
-          <div key={s.key} className="settings-row">
-            <div>
-              <div className="lbl">{s.label}</div>
-              <div className="sub">{s.desc}</div>
-            </div>
-            <div className={`toggle${settings[s.key] ? ' on' : ''}`} onClick={() => toggle(s.key)}>
-              <div className="knob" />
-            </div>
-          </div>
-        ))}
+      <div className="empty-state">
+        <div className="empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+        <h3>Settings coming soon</h3>
+        <p>Notification and privacy preferences will be available here once connected to your account.</p>
       </div>
-
-      <div className="card" style={{ padding: 18, maxWidth: 520 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>Privacy</h3>
-        <div className="settings-row" style={{ borderBottom: 'none' }}>
-          <div>
-            <div className="lbl">Profile visibility</div>
-            <div className="sub">Control who can see your profile information.</div>
-          </div>
-          <div className="toggle on" style={{ cursor: 'default' }}>
-            <div className="knob" />
-          </div>
-        </div>
-      </div>
-
-      <button className="btn primary" style={{ marginTop: 16, width: 'fit-content' }} onClick={handleSave}>
-        {saved ? 'Saved!' : 'Save settings'}
-      </button>
     </div>
   )
 }
