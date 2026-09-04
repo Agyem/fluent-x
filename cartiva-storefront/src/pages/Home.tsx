@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { getActiveCategories, getActiveProducts, getProductVariants, getProductImages, getPublicImageUrl } from '../lib/catalogue'
-import type { Category, Product } from '../lib/catalogue'
+import type { Category, Product, ProductVariant } from '../lib/catalogue'
 import { SkeletonCard } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
 import Placeholder from '../components/Placeholder'
@@ -9,14 +9,17 @@ import { displayCategoryName } from '../lib/categoryDisplay'
 import { Package } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export default function Home() {
   const { user } = useAuth()
+  const { addItem } = useCart()
   const [cats, setCats] = useState<Category[] | null>(null)
   const [products, setProducts] = useState<Product[] | null>(null)
   const [variantPrices, setVariantPrices] = useState<Record<string, number | null>>({})
+  const [firstVariants, setFirstVariants] = useState<Record<string, ProductVariant>>({})
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
   const [wishlist, setWishlist] = useState<Set<string>>(new Set())
   const [err, setErr] = useState<string | null>(null)
@@ -30,10 +33,12 @@ export default function Home() {
         setCats(c); setProducts(p)
         const priceMap: Record<string, number | null> = {}
         const urlMap: Record<string, string> = {}
+        const varMap: Record<string, ProductVariant> = {}
         await Promise.all(p.map(async prod => {
           if (prod.product_type === 'variable') {
             try {
               const vars = await getProductVariants(prod.id)
+              if (vars.length > 0) varMap[prod.id] = vars[0]
               const priced = vars.filter(v => v.price > 0 || (v.sale_price ?? 0) > 0)
               if (priced.length > 0) {
                 const best = priced.reduce((min, v) => {
@@ -42,6 +47,7 @@ export default function Home() {
                   return pv < mv ? v : min
                 })
                 priceMap[prod.id] = best.sale_price ?? best.price
+                if (!varMap[prod.id]) varMap[prod.id] = best
               } else priceMap[prod.id] = null
             } catch { priceMap[prod.id] = null }
           } else {
@@ -55,7 +61,7 @@ export default function Home() {
             }
           } catch { /* no image */ }
         }))
-        if (!cancelled) { setVariantPrices(priceMap); setImageUrls(urlMap) }
+        if (!cancelled) { setVariantPrices(priceMap); setImageUrls(urlMap); setFirstVariants(varMap) }
 
         if (user) {
           const { data: wl } = await supabase.from('wishlist_items').select('product_id').eq('customer_id', user.id)
@@ -134,6 +140,19 @@ export default function Home() {
                   <div className="pc-name">{p.name}</div>
                   <div className="pc-price-row">
                     <span className="pc-price">{hasPrice ? CEDI(displayPrice!) : 'Price not set'}</span>
+                    {firstVariants[p.id] && (
+                      <button className="pc-add" onClick={e => {
+                        e.preventDefault(); e.stopPropagation()
+                        const v = firstVariants[p.id]
+                        addItem({
+                          product_id: p.id, variant_id: v.id,
+                          product_name: p.name, variant_name: v.name,
+                          sku: v.sku ?? p.sku ?? null,
+                          unit_price: v.sale_price ?? v.price,
+                          image_path: null,
+                        })
+                      }}>Add</button>
+                    )}
                   </div>
                 </div>
               </Link>
