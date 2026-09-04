@@ -19,7 +19,11 @@ export default function AccountOffers() {
     async function load() {
       try {
         const { data, error } = await supabase.from('coupons').select('id, code, discount_percent, valid_until, used').eq('customer_id', user!.id).order('valid_until', { ascending: false })
-        if (error && (error as { code?: string }).code !== '42P01') throw error
+        if (error) {
+          const code = (error as { code?: string }).code
+          if (code === '42P01' || code === '42703') { if (!cancelled) setCoupons([]); return }
+          throw error
+        }
         if (!cancelled) setCoupons((data || []) as Coupon[])
       } catch (e) { if (!cancelled) setErr((e as Error).message) }
       finally { if (!cancelled) setLoading(false) }

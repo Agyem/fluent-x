@@ -20,7 +20,8 @@ export default function AccountReviews() {
       try {
         const { data, error } = await supabase.from('reviews').select('id, rating, comment, status, created_at, products(name)').eq('customer_id', user!.id).order('created_at', { ascending: false })
         if (error) {
-          if ((error as { code?: string }).code === '42P01') { if (!cancelled) setReviews([]); return }
+          const code = (error as { code?: string }).code
+          if (code === '42P01' || code === '42703') { if (!cancelled) setReviews([]); return }
           throw error
         }
         if (!cancelled) setReviews((data || []) as Review[])
