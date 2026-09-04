@@ -47,10 +47,9 @@ export default function Footer() {
             <p>Everything for campus life, delivered to your hall.</p>
             <p>Cartiva makes everyday shopping convenient for university students and young customers — from lecture-hall essentials to hostel upgrades, ordered in a few taps and delivered where you live.</p>
             <div className="footer-social">
-              <button title="Facebook">f</button>
-              <button title="Instagram">ig</button>
-              <button title="X (Twitter)">x</button>
-              <button title="TikTok">tt</button>
+              <a href="https://www.facebook.com/profile.php?id=61594272832003" target="_blank" rel="noopener noreferrer" title="Facebook">f</a>
+              <a href="https://whatsapp.com/channel/0029VbEJ9hQI1rckYAj6XB1d" target="_blank" rel="noopener noreferrer" title="WhatsApp">wa</a>
+              <a href="https://t.me/cartivashop" target="_blank" rel="noopener noreferrer" title="Telegram">tg</a>
             </div>
             <div className="footer-contact-note">support@cartiva.com</div>
           </div>

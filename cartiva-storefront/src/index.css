@@ -402,12 +402,13 @@ a{color:inherit;}
 }
 .footer-col button.footer-link:hover{color:#fff;}
 .footer-social{display:flex;gap:8px;margin-top:16px;}
-.footer-social button{
+.footer-social a{
   width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,0.16);background:rgba(255,255,255,0.06);
   color:rgba(255,255,255,0.8);font-size:11px;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:background .12s ease, border-color .12s ease;
+  text-decoration:none;
 }
-.footer-social button:hover{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.3);}
+.footer-social a:hover{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.3);}
 .footer-contact-note{font-size:11px;color:rgba(255,255,255,0.42);margin-top:10px;}
 .footer-bottom{
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
