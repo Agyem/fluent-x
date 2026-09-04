@@ -44,7 +44,7 @@ export default function Header() {
     <header className="site-header">
       <div className="site-header-inner">
         <div className="brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <img src="/logo.svg" alt="Cartiva" className="brand-mark" style={{ width: 32, height: 32, borderRadius: 8 }} />
+          <img src="/new_logo-removebg-preview%20(1).png" alt="Cartiva" style={{ height: 36, width: 'auto' }} />
           <span className="brand-name">Cartiva</span>
         </div>
 

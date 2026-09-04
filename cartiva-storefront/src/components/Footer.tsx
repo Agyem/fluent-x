@@ -39,7 +39,7 @@ export default function Footer() {
         <div className="footer-top">
           <div className="footer-col footer-brand">
             <div className="brand">
-              <img src="/logo.svg" alt="Cartiva" className="brand-mark" style={{ width: 32, height: 32, borderRadius: 8 }} />
+              <img src="/new_logo-removebg-preview%20(1).png" alt="Cartiva" style={{ height: 40, width: 'auto' }} />
               <span className="footer-wordmark">Cartiva</span>
             </div>
             <p>Everything for campus life, delivered to your hall.</p>
