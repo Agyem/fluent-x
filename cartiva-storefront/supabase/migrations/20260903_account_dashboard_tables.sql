@@ -87,7 +87,7 @@ create table if not exists public.reviews (
   updated_at timestamptz not null default now()
 );
 
-alter table public.reviews enable row level level;
+alter table public.reviews enable row level security;
 
 -- Customers can read their own reviews
 create policy "Customers read own reviews"

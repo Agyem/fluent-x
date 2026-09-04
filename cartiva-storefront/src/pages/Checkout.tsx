@@ -109,7 +109,7 @@ export default function Checkout() {
       if (delErr) console.warn('[checkout] deliveries insert failed:', delErr.message)
 
       clear()
-      navigate(`/orders/${order.id}`, { state: { justCreated: true, shippingMethod, fee, finalTotal } })
+      navigate(`/account/orders/${order.id}`, { state: { justCreated: true, shippingMethod, fee, finalTotal } })
     } catch (e) {
       setError((e as Error).message)
     } finally {

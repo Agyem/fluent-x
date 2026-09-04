@@ -5,13 +5,21 @@ import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
 
 interface OrderDetail {
-  id: string; status: string; total: number; shipping_fee: number; created_at: string;
-  deliveries?: { method: string; status: string; tracking_number?: string; estimated_date?: string }[];
+  id: string; status: string; total_amount: number; created_at: string;
+  deliveries?: { method: string; status: string; tracking_number?: string; expected_delivery_date?: string }[];
   order_items?: { quantity: number; unit_price: number; products?: { name: string; thumbnail_path?: string }[] }[];
   order_payment_summary?: { method: string; amount: number; status: string }[];
 }
 
-const STEPS = ['Placed', 'Confirmed', 'Processing', 'Shipped', 'Out for delivery', 'Delivered']
+const STATUS_MAP: Record<string, number> = {
+  pending: 0, placed: 0,
+  confirmed: 1,
+  processing: 2,
+  shipped: 3,
+  'out for delivery': 4,
+  delivered: 5,
+  cancelled: -1,
+}
 
 export default function AccountOrderDetails() {
   const { id } = useParams()
@@ -25,7 +33,7 @@ export default function AccountOrderDetails() {
     async function load() {
       try {
         const { data, error } = await supabase.from('orders')
-          .select('id, status, total, shipping_fee, created_at, deliveries(method, status, tracking_number, estimated_date), order_items(quantity, unit_price, products(name, thumbnail_path)), order_payment_summary(method, amount, status)')
+          .select('id, status, total_amount, created_at, deliveries(method, status, tracking_number, expected_delivery_date), order_items(quantity, unit_price, products(name, thumbnail_path)), order_payment_summary(method, amount, status)')
           .eq('id', id!).single()
         if (error) throw error
         if (!cancelled) setOrder(data as OrderDetail)
@@ -40,7 +48,7 @@ export default function AccountOrderDetails() {
   if (err) return <ErrorState message={err} />
   if (!order) return <ErrorState message="Order not found" />
 
-  const statusIdx = STEPS.indexOf(order.status.charAt(0).toUpperCase() + order.status.slice(1))
+  const statusIdx = STATUS_MAP[order.status] ?? 0
 
   return (
     <div>
@@ -62,10 +70,10 @@ export default function AccountOrderDetails() {
         </div>
 
         <div className="rail">
-          {STEPS.map((step, i) => (
+          {['Placed', 'Confirmed', 'Processing', 'Shipped', 'Out for delivery', 'Delivered'].map((step, i) => (
             <div key={step} className={`rail-step${i <= statusIdx ? ' done' : ''}${i === statusIdx ? ' current' : ''}`}>
               <div className="rail-dot" />
-              {i < STEPS.length - 1 && <div className="rail-line" />}
+              {i < 5 && <div className="rail-line" />}
               <div className="rail-label">{step}</div>
             </div>
           ))}
@@ -92,9 +100,7 @@ export default function AccountOrderDetails() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="card" style={{ padding: 18 }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Summary</h3>
-            <div className="co-summary-row"><span>Subtotal</span><span className="mono">GH₵ {(Number(order.total) - Number(order.shipping_fee || 0)).toFixed(2)}</span></div>
-            <div className="co-summary-row"><span>Shipping</span><span className="mono">GH₵ {Number(order.shipping_fee || 0).toFixed(2)}</span></div>
-            <div className="co-summary-row" style={{ fontWeight: 700, color: 'var(--text)', borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}><span>Total</span><span className="mono">GH₵ {Number(order.total).toFixed(2)}</span></div>
+            <div className="co-summary-row"><span>Total</span><span className="mono">GH₵ {Number(order.total_amount).toFixed(2)}</span></div>
           </div>
 
           {order.deliveries?.[0] && (
@@ -102,7 +108,7 @@ export default function AccountOrderDetails() {
               <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Delivery</h3>
               <div style={{ fontSize: 13 }}><span style={{ color: 'var(--text-muted)' }}>Method:</span> {order.deliveries[0].method === 'air' ? 'Air Freight' : 'Sea Freight'}</div>
               {order.deliveries[0].tracking_number && <div style={{ fontSize: 13, marginTop: 4 }}><span style={{ color: 'var(--text-muted)' }}>Tracking:</span> {order.deliveries[0].tracking_number}</div>}
-              {order.deliveries[0].estimated_date && <div style={{ fontSize: 13, marginTop: 4 }}><span style={{ color: 'var(--text-muted)' }}>Est. delivery:</span> {new Date(order.deliveries[0].estimated_date).toLocaleDateString()}</div>}
+              {order.deliveries[0].expected_delivery_date && <div style={{ fontSize: 13, marginTop: 4 }}><span style={{ color: 'var(--text-muted)' }}>Est. delivery:</span> {new Date(order.deliveries[0].expected_delivery_date).toLocaleDateString()}</div>}
             </div>
           )}
 

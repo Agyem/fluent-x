@@ -38,8 +38,19 @@ export default function AccountWishlist() {
 
   async function moveToCart(item: WishlistItem) {
     const p = item.products?.[0]
-    if (!p) return
-    addItem({ product_id: item.product_id, variant_id: item.product_id, product_name: p.name, variant_name: null, sku: null, unit_price: 0, quantity: 1 })
+    if (!p || !p.active) return
+    const { data: vars } = await supabase.from('product_variants').select('id, name, sku, price, sale_price').eq('product_id', p.id).eq('active', true).order('name').limit(1)
+    const v = vars?.[0]
+    if (!v) return
+    addItem({
+      product_id: item.product_id,
+      variant_id: v.id,
+      product_name: p.name,
+      variant_name: v.name,
+      sku: v.sku ?? null,
+      unit_price: v.sale_price ?? v.price,
+      quantity: 1,
+    })
     await removeItem(item.id)
   }
 

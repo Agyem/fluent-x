@@ -224,7 +224,7 @@ a{color:inherit;}
 .pc-add{
   padding:6px 14px;border-radius:8px;border:none;cursor:pointer;
   font-size:12px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:0.2px;
-  background:var(--bg-secondary);color:var(--text-primary);
+  background:var(--surface-muted);color:var(--text);
   transition:background .12s ease, color .12s ease;white-space:nowrap;flex-shrink:0;
 }
 .pc-add:hover{background:var(--primary);color:#fff;}
@@ -498,8 +498,6 @@ a{color:inherit;}
   .topbar{display:none;}
   .mobile-topbar{display:block;}
   .mobile-sheet,.mobile-sheet-inner{display:block;}
-  .mobile-sheet{display:none;}
-  .mobile-sheet-inner{display:none;}
 }
 
 @media (max-width:480px){

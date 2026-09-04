@@ -6,7 +6,7 @@ import { Loading } from '../components/Loading'
 import ErrorState from '../components/ErrorState'
 
 interface Order {
-  id: string; status: string; total: number; created_at: string;
+  id: string; status: string; total_amount: number; created_at: string;
   order_items?: { product_id: string; quantity: number; products?: { name: string; thumbnail_path?: string }[] }[];
 }
 
@@ -16,6 +16,8 @@ export default function Account() {
   const [orders, setOrders] = useState<Order[]>([])
   const [orderCount, setOrderCount] = useState(0)
   const [addressCount, setAddressCount] = useState(0)
+  const [wishlistCount, setWishlistCount] = useState(0)
+  const [reviewCount, setReviewCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
 
@@ -24,15 +26,19 @@ export default function Account() {
     let cancelled = false
     async function load() {
       try {
-        const [ordersRes, addrRes] = await Promise.all([
-          supabase.from('orders').select('id, status, total, created_at, order_items(product_id, quantity, products(name, thumbnail_path))').eq('customer_id', user!.id).order('created_at', { ascending: false }).limit(5),
+        const [ordersRes, addrRes, wlRes, revRes] = await Promise.all([
+          supabase.from('orders').select('id, status, total_amount, created_at, order_items(product_id, quantity, products(name, thumbnail_path))').eq('customer_id', user!.id).order('created_at', { ascending: false }).limit(5),
           supabase.from('customer_addresses').select('id', { count: 'exact', head: true }).eq('customer_id', user!.id),
+          supabase.from('wishlist_items').select('id', { count: 'exact', head: true }).eq('customer_id', user!.id),
+          supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('customer_id', user!.id),
         ])
         if (ordersRes.error) throw ordersRes.error
         if (!cancelled) {
           setOrders((ordersRes.data || []) as Order[])
           setOrderCount((ordersRes.data || []).length)
           setAddressCount(addrRes.count || 0)
+          setWishlistCount(wlRes.count || 0)
+          setReviewCount(revRes.count || 0)
         }
       } catch (e) { if (!cancelled) setErr((e as Error).message) }
       finally { if (!cancelled) setLoading(false) }
@@ -48,8 +54,8 @@ export default function Account() {
   const stats = [
     { label: 'Total orders', value: orderCount, icon: 'bag', color: 'var(--primary-light)', iconColor: 'var(--primary-dark)', path: '/account/orders' },
     { label: 'Addresses', value: addressCount, icon: 'map', color: 'var(--success-light)', iconColor: 'var(--success)', path: '/account/addresses' },
-    { label: 'Wishlist items', value: 0, icon: 'heart', color: 'var(--danger-light)', iconColor: 'var(--danger)', path: '/account/wishlist' },
-    { label: 'Reviews', value: 0, icon: 'star', color: 'var(--warning-light)', iconColor: 'var(--warning)', path: '/account/reviews' },
+    { label: 'Wishlist items', value: wishlistCount, icon: 'heart', color: 'var(--danger-light)', iconColor: 'var(--danger)', path: '/account/wishlist' },
+    { label: 'Reviews', value: reviewCount, icon: 'star', color: 'var(--warning-light)', iconColor: 'var(--warning)', path: '/account/reviews' },
   ]
 
   return (
@@ -91,7 +97,7 @@ export default function Account() {
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div className="product-price">GH₵ {Number(o.total).toFixed(2)}</div>
+                <div className="product-price">GH₵ {Number(o.total_amount).toFixed(2)}</div>
                 <div style={{ fontSize: 11, color: o.status === 'delivered' ? 'var(--success)' : o.status === 'cancelled' ? 'var(--danger)' : 'var(--text-muted)', fontWeight: 600, textTransform: 'capitalize', marginTop: 2 }}>{o.status}</div>
               </div>
             </div>

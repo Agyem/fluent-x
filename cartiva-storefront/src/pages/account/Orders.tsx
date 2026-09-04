@@ -6,7 +6,7 @@ import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
 
 interface Order {
-  id: string; status: string; total: number; created_at: string;
+  id: string; status: string; total_amount: number; created_at: string;
   deliveries?: { method: string; status: string }[];
   order_items?: { quantity: number; products?: { name: string }[] }[];
 }
@@ -27,7 +27,7 @@ export default function AccountOrders() {
     async function load() {
       try {
         const { data, error } = await supabase.from('orders')
-          .select('id, status, total, created_at, deliveries(method, status), order_items(quantity, products(name))')
+          .select('id, status, total_amount, created_at, deliveries(method, status), order_items(quantity, products(name))')
           .eq('customer_id', user!.id)
           .order('created_at', { ascending: false })
         if (error) throw error
@@ -83,7 +83,7 @@ export default function AccountOrders() {
               </div>
               <div className="order-meta">
                 <div><span>Items</span>{o.order_items?.length || 0}</div>
-                <div><span>Total</span><span className="mono" style={{ fontWeight: 600 }}>GH₵ {Number(o.total).toFixed(2)}</span></div>
+                <div><span>Total</span><span className="mono" style={{ fontWeight: 600 }}>GH₵ {Number(o.total_amount).toFixed(2)}</span></div>
                 {o.deliveries?.[0] && <div><span>Delivery</span>{o.deliveries[0].method === 'air' ? 'Air' : 'Sea'}</div>}
               </div>
               <div className="mini-rail">

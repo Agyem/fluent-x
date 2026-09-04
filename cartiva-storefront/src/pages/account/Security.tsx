@@ -60,7 +60,7 @@ export default function AccountSecurity() {
             <div className="lbl">Sign out</div>
             <div className="sub">Sign out from your account on this device.</div>
           </div>
-          <button className="btn sm" onClick={signOut}>Sign out</button>
+          <button className="btn sm" onClick={async () => { await signOut() }}>Sign out</button>
         </div>
         <div className="settings-row" style={{ borderBottom: 'none' }}>
           <div>
