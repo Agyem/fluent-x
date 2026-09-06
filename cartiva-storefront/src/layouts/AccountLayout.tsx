@@ -63,6 +63,15 @@ export default function AccountLayout() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.classList.add('mobile-drawer-open')
+    } else {
+      document.body.classList.remove('mobile-drawer-open')
+    }
+    return () => { document.body.classList.remove('mobile-drawer-open') }
+  }, [mobileOpen])
+
   const initials = (profile?.full_name as string || 'U').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
 
   return (
