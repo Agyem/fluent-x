@@ -81,6 +81,12 @@ export default function Checkout() {
       const fee = getShippingFee(shippingMethod as ShippingMethod)
       const finalTotal = authoritativeSubtotal + fee
 
+      const { error: custErr } = await supabase.from('customers').upsert(
+        { id: user.id, email: user.email ?? '' },
+        { onConflict: 'id', ignoreDuplicates: true }
+      )
+      if (custErr) console.warn('[checkout] customers upsert:', custErr.message)
+
       const { data: order, error: oErr } = await supabase.from('orders').insert({
         customer_id: user.id,
         status: 'pending',

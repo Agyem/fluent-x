@@ -52,6 +52,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (sess?.user) {
         const p = await fetchProfile(sess.user.id)
         if (mounted) setProfile(p)
+        supabase.from('customers').upsert(
+          { id: sess.user.id, email: sess.user.email ?? '' },
+          { onConflict: 'id', ignoreDuplicates: true }
+        ).then(({ error }) => { if (error) console.warn('[auth] customers sync:', error.message) })
       }
       setLoading(false)
     })
@@ -63,6 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (sess?.user) {
         const p = await fetchProfile(sess.user.id)
         setProfile(p)
+        supabase.from('customers').upsert(
+          { id: sess.user.id, email: sess.user.email ?? '' },
+          { onConflict: 'id', ignoreDuplicates: true }
+        ).then(({ error }) => { if (error) console.warn('[auth] customers sync:', error.message) })
       } else {
         setProfile(null)
       }
