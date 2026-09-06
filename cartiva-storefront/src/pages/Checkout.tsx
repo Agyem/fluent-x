@@ -35,7 +35,7 @@ export default function Checkout() {
         <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 8 }}>Please log in to checkout.</p>
         <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'center' }}>
           <Link to="/login" state={{ from: '/checkout' }} className="btn primary">Log in</Link>
-          <Link to="/register" className="btn">Need an account?</Link>
+          <Link to="/register" className="btn">Create account</Link>
         </div>
       </div>
     )
