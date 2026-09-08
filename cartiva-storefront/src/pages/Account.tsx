@@ -49,15 +49,15 @@ export default function Account() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 30 }}>
         <div style={{ background: '#f7f7f5', padding: 20, borderRadius: 15, cursor: 'pointer' }} onClick={() => navigate('/account/orders')}>
           <div style={{ fontSize: 10, color: '#888' }}>ORDERS</div>
-          <strong style={{ fontFamily: 'Manrope', fontSize: 25 }}>{orderCount}</strong>
+          <strong style={{ fontFamily: 'Plus Jakarta Sans', fontSize: 25 }}>{orderCount}</strong>
         </div>
         <div style={{ background: '#f7f7f5', padding: 20, borderRadius: 15, cursor: 'pointer' }} onClick={() => navigate('/account/wishlist')}>
           <div style={{ fontSize: 10, color: '#888' }}>WISHLIST</div>
-          <strong style={{ fontFamily: 'Manrope', fontSize: 25 }}>{wishlistCount}</strong>
+          <strong style={{ fontFamily: 'Plus Jakarta Sans', fontSize: 25 }}>{wishlistCount}</strong>
         </div>
         <div style={{ background: '#f7f7f5', padding: 20, borderRadius: 15, cursor: 'pointer' }} onClick={() => navigate('/account/cart')}>
           <div style={{ fontSize: 10, color: '#888' }}>CART ITEMS</div>
-          <strong style={{ fontFamily: 'Manrope', fontSize: 25 }}>{cartCount}</strong>
+          <strong style={{ fontFamily: 'Plus Jakarta Sans', fontSize: 25 }}>{cartCount}</strong>
         </div>
       </div>
     </div>

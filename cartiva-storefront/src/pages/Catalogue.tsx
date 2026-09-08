@@ -149,7 +149,7 @@ export default function Catalogue() {
 
           <div>
             <div className="shop-toolbar">
-              <span style={{ fontSize: 12, color: '#737373' }}>{filtered.length} product{filtered.length !== 1 ? 's' : ''}</span>
+              <span style={{ fontSize: 12, color: '#6B7280' }}>{filtered.length} product{filtered.length !== 1 ? 's' : ''}</span>
               <select className="sort-select" value={sortBy} onChange={e => setSort(e.target.value)}>
                 <option value="popular">Recommended</option>
                 <option value="price-asc">Price: Low to high</option>
