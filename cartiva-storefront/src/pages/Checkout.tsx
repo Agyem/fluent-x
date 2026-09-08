@@ -8,8 +8,6 @@ import { SHIPPING_OPTIONS, getShippingFee, getExpectedDeliveryDate, type Shippin
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-const CAMPUS_LOCATIONS = ['Amamoma', 'Ayensu', 'Kwaprow', 'Science', 'Old Site', 'New Site', 'SRC / Superannuation']
-
 export default function Checkout() {
   const { user, profile } = useAuth()
   const { items, subtotal: displaySubtotal, clear } = useCart()
@@ -19,7 +17,6 @@ export default function Checkout() {
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
-  const [campus, setCampus] = useState<string | null>(null)
   const [placing, setPlacing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -111,7 +108,7 @@ export default function Checkout() {
       if (itemsErr) throw new Error(`Order created (${order.order_number}) but items failed: ${itemsErr.message}`)
 
       const expectedDate = getExpectedDeliveryDate(shippingMethod as ShippingMethod)
-      const fullAddress = campus ? `${campus} — ${deliveryAddress.trim()} (${customerName.trim()}, ${customerPhone.trim()})` : `${deliveryAddress.trim()} (${customerName.trim()}, ${customerPhone.trim()})`
+      const fullAddress = `${deliveryAddress.trim()} (${customerName.trim()}, ${customerPhone.trim()})`
       const { error: delErr } = await supabase.from('deliveries').insert({
         order_id: order.id,
         method: shippingMethod,
@@ -160,18 +157,7 @@ export default function Checkout() {
         <div className="container checkout-grid">
           <div>
             <div className="checkout-section">
-              <h3>1. Where should we deliver?</h3>
-              <div className="location-grid">
-                {CAMPUS_LOCATIONS.map(loc => (
-                  <button key={loc} className={`location-option${campus === loc ? ' active' : ''}`} onClick={() => setCampus(campus === loc ? null : loc)}>
-                    {loc}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="checkout-section">
-              <h3>2. Delivery information</h3>
+              <h3>1. Delivery information</h3>
               <div className="input-grid">
                 <input className="input" placeholder="Full name" value={customerName} onChange={e => setCustomerName(e.target.value)} />
                 <input className="input" placeholder="Phone number" type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
@@ -180,7 +166,7 @@ export default function Checkout() {
             </div>
 
             <div className="checkout-section">
-              <h3>3. Delivery method</h3>
+              <h3>2. Delivery method</h3>
               {(['air', 'sea'] as const).map(m => {
                 const opt = SHIPPING_OPTIONS[m]
                 const selected = shippingMethod === m
@@ -196,7 +182,7 @@ export default function Checkout() {
             </div>
 
             <div className="checkout-section">
-              <h3>4. Payment</h3>
+              <h3>3. Payment</h3>
               <button className={`location-option${paymentMethod === 'seevplus' ? ' active' : ''}`} style={{ width: '100%' }} onClick={() => setPaymentMethod('seevplus')}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 800, fontSize: 13 }}>Seev Plus — Mobile Money</div>
