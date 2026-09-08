@@ -228,6 +228,7 @@ h1, h2, h3, .display { font-family: Manrope, sans-serif; letter-spacing: -.02em;
 .footer, .site-footer { background: #111; color: white; padding: 75px 0 35px; margin-top: 44px; }
 .footer-grid, .footer-inner .footer-top { display: grid; grid-template-columns: 1.6fr repeat(3,1fr); gap: 40px; padding-bottom: 55px; width: min(1240px, calc(100% - 40px)); margin: auto; }
 .footer-brand p { color: #8d8d8d; max-width: 300px; line-height: 1.7; font-size: 12px; margin-top: 16px; }
+.footer-brand .logo { color: #fff; }
 .footer-title, .footer-col h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .13em; font-weight: 800; color: #777; margin-bottom: 18px; font-family: "DM Sans", sans-serif; }
 .footer-links { display: grid; gap: 11px; }
 .footer-links button, .footer-links a, .footer-col button.footer-link { background: none; border: 0; color: #c4c4c4; text-align: left; font-size: 12px; padding: 0; cursor: pointer; font-family: "DM Sans", sans-serif; }
