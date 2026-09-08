@@ -182,7 +182,7 @@ h1, h2, h3, .display { font-family: Manrope, sans-serif; letter-spacing: -.02em;
 .product-name { font-family: Manrope, sans-serif; font-weight: 800; font-size: 15px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .product-card .pc-name { font-family: Manrope, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .product-variant { color: var(--muted); font-size: 11px; margin-top: 3px; }
-.product-bottom, .product-card .pc-price-row { display: flex; justify-content: space-between; align-items: end; margin-top: 9px; }
+.product-bottom, .product-card .pc-price-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
 .product-price { font-family: Manrope, sans-serif; font-size: 16px; font-weight: 800; }
 .product-card .pc-price { font-family: Manrope, sans-serif; font-size: 16px; font-weight: 800; }
 .product-old, .product-card .pc-oldprice { text-decoration: line-through; color: #aaa; font-size: 10px; margin-left: 5px; }
@@ -479,6 +479,7 @@ body.mobile-drawer-open { overflow: auto; }
   .product-image, .product-card .pc-image img { padding: 14px; }
   .product-name, .product-card .pc-name { font-size: 13px; }
   .product-price, .product-card .pc-price { font-size: 14px; }
+  .pc-add { padding: 7px 10px; font-size: 11px; }
   .section-head { align-items: start; }
   .section-title { font-size: 32px; }
   .editorial-grid { grid-template-columns: 1fr; }

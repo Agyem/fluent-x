@@ -155,7 +155,7 @@ export default function Home() {
                 e.preventDefault(); e.stopPropagation()
                 const v = firstVariants[p.id]
                 addItem({ product_id: p.id, variant_id: v.id, product_name: p.name, variant_name: v.name, sku: v.sku ?? p.sku ?? null, unit_price: v.sale_price ?? v.price, image_path: null })
-              }}>Add</button>
+              }}>Add to Cart</button>
             )}
           </div>
         </div>
