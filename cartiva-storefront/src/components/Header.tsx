@@ -12,8 +12,15 @@ export default function Header() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, signOut } = useAuth()
-  const { count } = useCart()
+  const { count, lastAdded } = useCart()
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const firstRender = useRef(true)
+
+  // Pop the cart drawer open whenever an item is added anywhere.
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return }
+    if (lastAdded > 0) setCartOpen(true)
+  }, [lastAdded])
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {

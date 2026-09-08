@@ -20,6 +20,7 @@ type CartState = {
   clear: () => void
   count: number
   subtotal: number
+  lastAdded: number
 }
 
 const CartContext = createContext<CartState>({
@@ -31,6 +32,7 @@ const CartContext = createContext<CartState>({
   clear: () => {},
   count: 0,
   subtotal: 0,
+  lastAdded: 0,
 })
 
 const STORAGE_KEY = 'cartiva_cart_v1'
@@ -49,6 +51,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)) } catch {}
   }, [items])
 
+  const [lastAdded, setLastAdded] = useState(0)
+
   const addItem = (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     const qty = item.quantity ?? 1
     setItems(prev => {
@@ -58,6 +62,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { ...item, quantity: qty }]
     })
+    setLastAdded(Date.now())
   }
 
   const removeItem = (variant_id: string) => setItems(prev => prev.filter(i => i.variant_id !== variant_id))
@@ -73,7 +78,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const subtotal = useMemo(() => items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0), [items])
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, increase, decrease, clear, count, subtotal }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, increase, decrease, clear, count, subtotal, lastAdded }}>
       {children}
     </CartContext.Provider>
   )
