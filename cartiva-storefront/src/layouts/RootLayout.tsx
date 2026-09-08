@@ -6,9 +6,9 @@ export default function RootLayout() {
   return (
     <>
       <Header />
-      <div className="site-main">
+      <main id="app">
         <Outlet />
-      </div>
+      </main>
       <Footer />
     </>
   )

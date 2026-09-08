@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { getProductById, getProductVariants, getProductOptions, getProductOptionValues, getProductImages, getPublicImageUrl, getActiveCategories } from '../lib/catalogue'
 import type { Product, ProductVariant, ProductOption, ProductOptionValue, ProductImage, Category } from '../lib/catalogue'
 import { Loading } from '../components/Loading'
@@ -7,12 +7,12 @@ import ErrorState from '../components/ErrorState'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
-import { Package, Truck, Shield, Clock } from 'lucide-react'
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [product, setProduct] = useState<Product | null | undefined>(undefined)
   const [category, setCategory] = useState<Category | null>(null)
   const [variants, setVariants] = useState<ProductVariant[] | null>(null)
@@ -33,8 +33,7 @@ export default function ProductDetails() {
     let cancelled = false
     async function load() {
       try {
-        setErr(null)
-        setProduct(undefined)
+        setErr(null); setProduct(undefined)
         const prod = await getProductById(id!)
         if (cancelled) return
         if (!prod) { setProduct(null); return }
@@ -46,22 +45,15 @@ export default function ProductDetails() {
           getProductImages(prod.id),
         ])
         if (cancelled) return
-        setVariants(vars)
-        setOptions(opts)
-        setImages(imgs)
-        const cat = cats.find(c => c.id === prod.category_id) ?? null
-        setCategory(cat)
+        setVariants(vars); setOptions(opts); setImages(imgs)
+        setCategory(cats.find(c => c.id === prod.category_id) ?? null)
         if (vars.length > 0) setSelectedVariantId(vars[0].id)
         if (opts.length > 0) {
           const vals = await getProductOptionValues(opts.map(o => o.id))
           if (cancelled) return
           setOptionValues(vals)
-        } else {
-          setOptionValues([])
-        }
-      } catch (e) {
-        if (!cancelled) setErr((e as Error).message)
-      }
+        } else setOptionValues([])
+      } catch (e) { if (!cancelled) setErr((e as Error).message) }
     }
     load()
     return () => { cancelled = true }
@@ -86,138 +78,103 @@ export default function ProductDetails() {
     }
   }
 
-  if (err) return <ErrorState message={err} onRetry={() => location.reload()} />
-  if (product === undefined) return <Loading label="Loading product..." />
-  if (product === null) return <div className="space-y-4"><ErrorState message="Product not found or inactive." /><Link to="/catalogue" className="btn primary">Back to catalogue</Link></div>
+  if (err) return <div className="container" style={{ padding: '40px 0' }}><ErrorState message={err} onRetry={() => location.reload()} /></div>
+  if (product === undefined) return <div className="container" style={{ padding: '40px 0' }}><Loading label="Loading product..." /></div>
+  if (product === null) return <div className="container" style={{ padding: '40px 0' }}><ErrorState message="Product not found or inactive." /></div>
 
   const selectedVariant = variants?.find(v => v.id === selectedVariantId) ?? null
   const primaryImage = (selectedImageId ? images?.find(i => i.id === selectedImageId) : null) ?? images?.find(i => i.is_primary) ?? images?.[0] ?? null
   const publicUrl = primaryImage?.storage_path ? getPublicImageUrl(primaryImage.storage_path) : null
-
-  const currentPrice = selectedVariant
-    ? (selectedVariant.sale_price ?? selectedVariant.price)
-    : (product.sale_price ?? product.base_price)
+  const currentPrice = selectedVariant ? (selectedVariant.sale_price ?? selectedVariant.price) : (product.sale_price ?? product.base_price)
   const hasPrice = currentPrice != null && currentPrice !== 0
-  const hasOldPrice = selectedVariant
-    ? (selectedVariant.sale_price != null && selectedVariant.sale_price !== 0 && selectedVariant.sale_price < selectedVariant.price)
-    : (product.sale_price != null && product.sale_price !== 0 && product.base_price != null && product.sale_price < product.base_price)
-  const oldPrice = selectedVariant ? selectedVariant.price : product.base_price
+
+  const doAdd = (buyNow: boolean) => {
+    if (!selectedVariant || !product) return
+    addItem({
+      product_id: product.id,
+      variant_id: selectedVariant.id,
+      product_name: product.name,
+      variant_name: selectedVariant.name,
+      sku: selectedVariant.sku ?? product.sku ?? null,
+      unit_price: selectedVariant.sale_price ?? selectedVariant.price,
+      image_path: primaryImage?.storage_path ?? null,
+    })
+    if (buyNow) navigate('/checkout')
+    else { setAdded(true); setTimeout(() => setAdded(false), 1800) }
+  }
 
   return (
-    <div className="pd-layout">
-      <div>
-        <div className="pd-gallery-main">
-          {publicUrl ? (
-            <img src={publicUrl} alt={product.name} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-          ) : (
-            <Package />
-          )}
-        </div>
-        {images && images.length > 1 && (
-          <div className="pd-thumbs">
-            {images.map(img => {
-              const url = img.storage_path ? getPublicImageUrl(img.storage_path) : null
-              return (
-                <div key={img.id} className={`pd-thumb ${img.id === primaryImage?.id ? 'active' : ''}`} onClick={() => setSelectedImageId(img.id)} style={{ cursor: 'pointer' }}>
-                  {url ? <img src={url} alt="" /> : <Package />}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <div className="pd-cat-link">{category?.name ?? 'Uncategorized'}</div>
-          <h1 className="pd-title">{product.name}</h1>
-          <div className="pd-rating-row">
-            <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Be the first to review this product</span>
-          </div>
-        </div>
-
-        <div className="pd-price-row">
-          <span className="pd-price">{hasPrice ? CEDI(currentPrice!) : 'Price not set'}</span>
-          {hasOldPrice && <span className="pd-oldprice">{CEDI(oldPrice!)}</span>}
-        </div>
-
-        {options && options.length > 0 && options.map(opt => {
-          const vals = optionValues?.filter(v => v.option_id === opt.id) ?? []
-          return (
-            <div key={opt.id} className="variant-group">
-              <h4>{opt.name}</h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0 }}>
-                {vals.map(v => (
-                  <span key={v.id} className="variant-chip">{v.value}</span>
-                ))}
+    <div className="page">
+      <section className="product-detail">
+        <div className="container">
+          <button className="back-button" onClick={() => navigate('/catalogue')}>← Back to shop</button>
+          <div className="product-detail-grid">
+            <div className="detail-gallery">
+              <div className="detail-main-image">
+                {publicUrl ? <img src={publicUrl} alt={product.name} /> : <span style={{ fontSize: 64 }}>📦</span>}
               </div>
+              {images && images.length > 1 && (
+                <div className="thumbnail-row">
+                  {images.map(img => {
+                    const url = img.storage_path ? getPublicImageUrl(img.storage_path) : null
+                    return (
+                      <button key={img.id} className={`thumbnail${img.id === primaryImage?.id ? ' active' : ''}`} onClick={() => setSelectedImageId(img.id)}>
+                        {url ? <img src={url} alt="" /> : <span>📦</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
-          )
-        })}
 
-        {variants && variants.length > 0 && (
-          <div className="variant-group">
-            <h4>Variant</h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0 }}>
-              {variants.map(v => {
-                const vp = v.sale_price ?? v.price
+            <div>
+              <div className="detail-category">{category?.name ?? 'Uncategorized'}</div>
+              <h1 className="detail-title">{product.name}</h1>
+              <div className="rating"><span className="stars">★★★★★</span> New on Cartiva</div>
+              <div className="detail-price">{hasPrice ? CEDI(currentPrice!) : 'Price not set'}</div>
+              {product.description && <p className="detail-description">{product.description}</p>}
+
+              {options && options.length > 0 && options.map(opt => {
+                const vals = optionValues?.filter(v => v.option_id === opt.id) ?? []
+                if (vals.length === 0) return null
                 return (
-                  <button key={v.id} onClick={() => setSelectedVariantId(v.id)} className={`variant-chip ${selectedVariantId === v.id ? 'active' : ''}`}>
-                    {v.name}{vp != null && vp !== 0 ? ` — ${CEDI(vp)}` : ''}
-                  </button>
+                  <div className="variant-row" key={opt.id}>
+                    <span className="option-label" style={{ width: '100%' }}>{opt.name}</span>
+                    {vals.map(v => <span key={v.id} className="variant-button" style={{ cursor: 'default' }}>{v.value}</span>)}
+                  </div>
                 )
               })}
+
+              {variants && variants.length > 0 && (
+                <div className="variant-row">
+                  <span className="option-label" style={{ width: '100%' }}>Choose variant</span>
+                  {variants.map(v => (
+                    <button key={v.id} className={`variant-button${selectedVariantId === v.id ? ' active' : ''}`} onClick={() => setSelectedVariantId(v.id)}>
+                      {v.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="quantity-row">
+                <span className="option-label">Quantity</span>
+                <div className="quantity-box">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))}>−</button>
+                  <span id="productQuantity">{qty}</span>
+                  <button onClick={() => setQty(qty + 1)}>+</button>
+                </div>
+              </div>
+
+              <div className="detail-actions">
+                <button className="secondary-btn" onClick={toggleWishlist}>{inWishlist ? '♥ Saved' : '♡ Add to wishlist'}</button>
+                <button className="primary-btn" disabled={!selectedVariant} onClick={() => doAdd(false)}>{added ? 'Added ✓' : 'Add to cart'}</button>
+              </div>
+              <button className="primary-btn full-btn" style={{ marginTop: 9 }} disabled={!selectedVariant} onClick={() => doAdd(true)}>Buy now →</button>
+              <a className="more-photos" href="https://wa.me/qr/Y4QSV6G5HXJMO1" target="_blank" rel="noopener noreferrer">More photos? View more on WhatsApp →</a>
             </div>
           </div>
-        )}
-
-        <div className="qty-stepper">
-          <button onClick={() => setQty(Math.max(1, qty - 1))}>−</button>
-          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600, fontSize: 14 }}>{qty}</span>
-          <button onClick={() => setQty(qty + 1)}>+</button>
         </div>
-
-        <div className="pd-actions">
-          <button
-            className="btn primary block"
-            disabled={!selectedVariant}
-            onClick={() => {
-              if (!selectedVariant || !product) return
-              const price = selectedVariant.sale_price ?? selectedVariant.price
-              addItem({
-                product_id: product.id,
-                variant_id: selectedVariant.id,
-                product_name: product.name,
-                variant_name: selectedVariant.name,
-                sku: selectedVariant.sku ?? product.sku ?? null,
-                unit_price: price,
-                image_path: primaryImage?.storage_path ?? null,
-              })
-              setAdded(true)
-              setTimeout(() => setAdded(false), 1800)
-            }}
-          >
-            {added ? 'Added ✓' : 'Add to cart'}
-          </button>
-          <button className={`btn${inWishlist ? '' : ' ghost'}`} onClick={toggleWishlist} style={inWishlist ? { color: 'var(--danger)', borderColor: 'var(--danger-light)', background: 'var(--danger-light)' } : {}}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-            {inWishlist ? 'Wishlisted' : 'Wishlist'}
-          </button>
-        </div>
-
-        <div className="trust-row">
-          <div className="trust-item"><Truck /> Free delivery over GH₵ 500</div>
-          <div className="trust-item"><Shield /> Secure checkout</div>
-          <div className="trust-item"><Clock /> 3–7 day delivery</div>
-        </div>
-
-        {product.description && (
-          <div className="pd-tabs">
-            <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Description</h3>
-            <div className="pd-desc">{product.description}</div>
-          </div>
-        )}
-      </div>
+      </section>
     </div>
   )
 }

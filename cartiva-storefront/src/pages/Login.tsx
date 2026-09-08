@@ -45,24 +45,19 @@ export default function Login() {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '0 auto' }}>
-      <div className="card" style={{ padding: 28 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700 }}>Log in</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Welcome back — customers only.</p>
-        <form onSubmit={submit} style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="ama@example.com" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
-          </div>
-          {err && <div style={{ padding: '8px 12px', borderRadius: 9, background: 'var(--danger-light)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: 13 }}>{err}</div>}
-          <button disabled={loading} className="btn primary block" style={{ opacity: loading ? 0.5 : 1 }}>{loading ? 'Signing in...' : 'Log in'}</button>
-          <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--text-muted)' }}>No account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600 }}>Create account</Link></div>
+    <div className="page">
+      <section className="section"><div className="container" style={{ maxWidth: 460 }}>
+        <div className="eyebrow">Welcome back</div>
+        <h1 className="section-title" style={{ marginBottom: 8 }}>Log in.</h1>
+        <p className="section-description" style={{ marginBottom: 24 }}>Access your Cartiva orders and wishlist.</p>
+        <form onSubmit={submit} style={{ display: 'grid', gap: 10 }}>
+          <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" />
+          <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
+          {err && <div style={{ padding: '12px 14px', borderRadius: 12, background: '#fee2e2', border: '1px solid var(--red)', color: 'var(--red)', fontSize: 13 }}>{err}</div>}
+          <button disabled={loading} className="primary-btn full-btn" style={{ opacity: loading ? 0.6 : 1 }}>{loading ? 'Signing in...' : 'Log in →'}</button>
+          <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--muted)' }}>No account? <Link to="/register" style={{ color: 'var(--orange)', fontWeight: 700 }}>Create account</Link></div>
         </form>
-      </div>
+      </div></section>
     </div>
   )
 }

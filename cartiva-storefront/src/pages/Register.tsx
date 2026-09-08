@@ -57,50 +57,33 @@ export default function Register() {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '0 auto' }}>
-      <div className="card" style={{ padding: 28 }}>
+    <div className="page">
+      <section className="section"><div className="container" style={{ maxWidth: 460 }}>
         {info ? (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--success-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--success)' }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Account created!</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>Your account has been created successfully. You can now log in to start shopping.</p>
-            <Link to="/login" className="btn primary block" style={{ textAlign: 'center' }}>Log in</Link>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 14 }}>Changed your mind? <Link to="/" style={{ color: 'var(--primary)', fontWeight: 600 }}>Back to shop</Link></div>
+            <div className="success-circle">✓</div>
+            <h1 className="order-number">Account created!</h1>
+            <p style={{ color: '#737373', fontSize: 13, marginBottom: 20 }}>Your account has been created successfully. You can now log in to start shopping.</p>
+            <Link to="/login" className="primary-btn full-btn">Log in</Link>
           </div>
         ) : (
           <>
-            <h1 style={{ fontSize: 20, fontWeight: 700 }}>Create account</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Start shopping with CARTIVA in minutes.</p>
-            <form onSubmit={submit} style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Full name *</label>
-                <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Ama Mensah" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Email *</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="ama@example.com" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Phone (optional)</label>
-                <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+233..." style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Password *</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Confirm password *</label>
-                <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="••••••••" style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }} />
-              </div>
-              {err && <div style={{ padding: '8px 12px', borderRadius: 9, background: 'var(--danger-light)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: 13 }}>{err}</div>}
-              <button disabled={loading} className="btn primary block" style={{ opacity: loading ? 0.5 : 1 }}>{loading ? 'Creating...' : 'Create account'}</button>
-              <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--text-muted)' }}>Already have an account? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Log in</Link></div>
+            <div className="eyebrow">Join Cartiva</div>
+            <h1 className="section-title" style={{ marginBottom: 8 }}>Create account.</h1>
+            <p className="section-description" style={{ marginBottom: 24 }}>Start shopping with CARTIVA in minutes.</p>
+            <form onSubmit={submit} style={{ display: 'grid', gap: 10 }}>
+              <input className="input" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full name *" />
+              <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address *" />
+              <input className="input" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone (optional)" />
+              <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password *" />
+              <input className="input" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Confirm password *" />
+              {err && <div style={{ padding: '12px 14px', borderRadius: 12, background: '#fee2e2', border: '1px solid var(--red)', color: 'var(--red)', fontSize: 13 }}>{err}</div>}
+              <button disabled={loading} className="primary-btn full-btn" style={{ opacity: loading ? 0.6 : 1 }}>{loading ? 'Creating...' : 'Create account →'}</button>
+              <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--muted)' }}>Already have an account? <Link to="/login" style={{ color: 'var(--orange)', fontWeight: 700 }}>Log in</Link></div>
             </form>
           </>
         )}
-      </div>
+      </div></section>
     </div>
   )
 }
