@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import Placeholder from '../components/Placeholder'
-import { MOMO_CONFIG } from '../lib/momoConfig'
 import { SHIPPING_OPTIONS, getShippingFee, getExpectedDeliveryDate, type ShippingMethod } from '../lib/shipping'
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -15,7 +14,7 @@ export default function Checkout() {
   const { user, profile } = useAuth()
   const { items, subtotal: displaySubtotal, clear } = useCart()
   const navigate = useNavigate()
-  const [paymentMethod, setPaymentMethod] = useState<'momo' | 'seevplus' | ''>('')
+  const [paymentMethod, setPaymentMethod] = useState<'seevplus' | ''>('seevplus')
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod | ''>('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [customerName, setCustomerName] = useState('')
@@ -23,7 +22,6 @@ export default function Checkout() {
   const [campus, setCampus] = useState<string | null>(null)
   const [placing, setPlacing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [hasClaimedPayment, setHasClaimedPayment] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -205,25 +203,6 @@ export default function Checkout() {
                   <div style={{ fontSize: 11, marginTop: 2, opacity: .75 }}>MTN MoMo, Telecel Cash, AT Money — pay on a secure hosted page</div>
                 </div>
               </button>
-              <button className={`location-option${paymentMethod === 'momo' ? ' active' : ''}`} style={{ width: '100%' }} onClick={() => setPaymentMethod('momo')}>
-                Mobile Money — Manual (pending admin verification)
-              </button>
-              {paymentMethod === 'momo' && (
-                <div style={{ marginTop: 12, background: '#fef3c7', borderRadius: 12, padding: 16, border: '1px solid #f59e0b' }}>
-                  <h4 style={{ fontSize: 13, fontWeight: 800 }}>Pay with Mobile Money</h4>
-                  <p style={{ fontSize: 12, color: '#666', marginTop: 6 }}>Send the <strong>exact final total</strong> to Cartiva MoMo.</p>
-                  <div style={{ marginTop: 10, background: '#fff', borderRadius: 10, padding: 12, border: '1px solid var(--border)', fontSize: 13 }}>
-                    <div className="summary-line"><span>Network:</span><span style={{ fontWeight: 600 }}>{MOMO_CONFIG.network ?? '[Not configured]'}</span></div>
-                    <div className="summary-line"><span>Account Name:</span><span style={{ fontWeight: 600 }}>{MOMO_CONFIG.accountName ?? '[Not configured]'}</span></div>
-                    <div className="summary-line"><span>Number:</span><span style={{ fontWeight: 600 }}>{MOMO_CONFIG.accountNumber ?? '[Not configured]'}</span></div>
-                    <div className="summary-line"><span>Amount:</span><span style={{ fontWeight: 800 }}>{CEDI(displaySubtotal + shippingFee)}</span></div>
-                  </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, cursor: 'pointer', fontSize: 13 }}>
-                    <input type="checkbox" checked={hasClaimedPayment} onChange={e => setHasClaimedPayment(e.target.checked)} />
-                    <span>I have made the payment</span>
-                  </label>
-                </div>
-              )}
               {error && <div style={{ background: '#fee2e2', border: '1px solid var(--red)', color: 'var(--red)', borderRadius: 12, padding: '10px 16px', fontSize: 13, marginTop: 14 }}>{error}</div>}
             </div>
           </div>
