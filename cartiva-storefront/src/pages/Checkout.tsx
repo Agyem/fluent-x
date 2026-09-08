@@ -15,7 +15,7 @@ export default function Checkout() {
   const { user, profile } = useAuth()
   const { items, subtotal: displaySubtotal, clear } = useCart()
   const navigate = useNavigate()
-  const [paymentMethod, setPaymentMethod] = useState<'momo' | ''>('')
+  const [paymentMethod, setPaymentMethod] = useState<'momo' | 'seevplus' | ''>('')
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod | ''>('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [customerName, setCustomerName] = useState('')
@@ -123,6 +123,22 @@ export default function Checkout() {
       })
       if (delErr) console.warn('[checkout] deliveries insert failed:', delErr.message)
 
+      if (paymentMethod === 'seevplus') {
+        // Order saved first (per Seev docs) — now create the hosted session server-side.
+        const { data: session, error: sessErr } = await supabase.functions.invoke('seevplus-init', {
+          body: {
+            order_id: order.id,
+            redirect_url: `${window.location.origin}/payment/callback?order_id=${order.id}`,
+          },
+        })
+        if (sessErr || !session?.checkout_url) {
+          throw new Error(session?.error ?? sessErr?.message ?? 'Could not start Seev Plus payment. Your order is saved — please retry from your orders page or contact support.')
+        }
+        clear()
+        window.location.href = session.checkout_url
+        return
+      }
+
       clear()
       navigate(`/account/orders/${order.id}`, { state: { justCreated: true, shippingMethod, fee, finalTotal } })
     } catch (e) {
@@ -183,6 +199,12 @@ export default function Checkout() {
 
             <div className="checkout-section">
               <h3>4. Payment</h3>
+              <button className={`location-option${paymentMethod === 'seevplus' ? ' active' : ''}`} style={{ width: '100%' }} onClick={() => setPaymentMethod('seevplus')}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>Seev Plus — Mobile Money</div>
+                  <div style={{ fontSize: 11, marginTop: 2, opacity: .75 }}>MTN MoMo, Telecel Cash, AT Money — pay on a secure hosted page</div>
+                </div>
+              </button>
               <button className={`location-option${paymentMethod === 'momo' ? ' active' : ''}`} style={{ width: '100%' }} onClick={() => setPaymentMethod('momo')}>
                 Mobile Money — Manual (pending admin verification)
               </button>

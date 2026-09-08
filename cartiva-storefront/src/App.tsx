@@ -7,6 +7,7 @@ import RequireAuth from './components/RequireAuth'
 import Home from './pages/Home'
 import Catalogue from './pages/Catalogue'
 import Search from './pages/Search'
+import PaymentCallback from './pages/PaymentCallback'
 import ProductDetails from './pages/ProductDetails'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/catalogue" element={<Catalogue />} />
               <Route path="/search" element={<Search />} />
+              <Route path="/payment/callback" element={<PaymentCallback />} />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
