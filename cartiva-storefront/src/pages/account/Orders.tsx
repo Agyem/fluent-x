@@ -4,20 +4,21 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Loading } from '../../components/Loading'
 import ErrorState from '../../components/ErrorState'
+import { getPublicImageUrl } from '../../lib/catalogue'
+
+const CEDI_FULL = (n: number) => 'GH₵' + Number(n).toLocaleString('en-GH', { maximumFractionDigits: 0 })
 
 interface Order {
-  id: string; status: string; total_amount: number; created_at: string;
-  deliveries?: { method: string; status: string }[];
-  order_items?: { quantity: number; products?: { name: string }[] }[];
+  id: string; order_number?: string | null; status: string; total_amount: number; created_at: string;
+  deliveries?: { method: string; status: string; delivery_address?: string | null }[];
+  order_items?: { quantity: number; product_id: string; products?: { name: string }[] }[];
 }
-
-const TABS = ['All', 'Active', 'Delivered', 'Cancelled']
 
 export default function AccountOrders() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([])
-  const [tab, setTab] = useState('All')
+  const [imgMap, setImgMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
 
@@ -27,11 +28,24 @@ export default function AccountOrders() {
     async function load() {
       try {
         const { data, error } = await supabase.from('orders')
-          .select('id, status, total_amount, created_at, deliveries(method, status), order_items(quantity, products(name))')
+          .select('id, order_number, status, total_amount, created_at, deliveries(method, status, delivery_address), order_items(quantity, product_id, products(name))')
           .eq('customer_id', user!.id)
           .order('created_at', { ascending: false })
         if (error) throw error
-        if (!cancelled) setOrders((data || []) as Order[])
+        const list = (data || []) as Order[]
+        if (!cancelled) setOrders(list)
+        const pids = [...new Set(list.flatMap(o => (o.order_items ?? []).map(i => i.product_id)).filter(Boolean))]
+        if (pids.length > 0 && !cancelled) {
+          const { data: imgs } = await supabase.from('product_images').select('product_id, storage_path').in('product_id', pids).order('is_primary', { ascending: false })
+          const map: Record<string, string> = {}
+          for (const im of (imgs ?? []) as { product_id: string; storage_path: string }[]) {
+            if (!map[im.product_id]) {
+              const url = getPublicImageUrl(im.storage_path)
+              if (url) map[im.product_id] = url
+            }
+          }
+          if (!cancelled) setImgMap(map)
+        }
       } catch (e) { if (!cancelled) setErr((e as Error).message) }
       finally { if (!cancelled) setLoading(false) }
     }
@@ -42,58 +56,56 @@ export default function AccountOrders() {
   if (loading) return <Loading label="Loading orders..." />
   if (err) return <ErrorState message={err} />
 
-  const filtered = orders.filter(o => {
-    if (tab === 'All') return true
-    if (tab === 'Active') return !['delivered', 'cancelled'].includes(o.status)
-    if (tab === 'Delivered') return o.status === 'delivered'
-    if (tab === 'Cancelled') return o.status === 'cancelled'
-    return true
-  })
-
   return (
-    <div>
-      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>My orders</h2>
-      <div className="tabbar">
-        {TABS.map(t => <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>{t}</button>)}
+    <div id="orders" className="section">
+      <div className="section-head">
+        <small>PURCHASE HISTORY</small>
+        <h2>My Orders</h2>
+        <p>Track your purchases and access their receipts.</p>
       </div>
-      {filtered.length === 0 ? (
+
+      {orders.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          </div>
-          <h3>No {tab.toLowerCase()} orders</h3>
-          <p>{tab === 'All' ? "You haven't placed any orders yet." : `No orders with status "${tab.toLowerCase()}".`}</p>
+          <div className="empty-icon">📦</div>
+          <h3>No orders yet</h3>
+          <p>Your completed Cartiva orders will appear here.</p>
+          <button className="orange-btn" onClick={() => navigate('/catalogue')}>Start shopping</button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {filtered.map(o => (
-            <div key={o.id} className="card order-card" style={{ cursor: 'pointer' }} onClick={() => navigate(`/account/orders/${o.id}`)}>
-              <div className="order-top">
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>Order #{o.id.slice(0, 8)}...</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{new Date(o.created_at).toLocaleDateString()}</div>
+        <div className="order-list">
+          {orders.map(o => {
+            const first = o.order_items?.[0]
+            const itemCount = o.order_items?.reduce((s, i) => s + i.quantity, 0) || 0
+            const addr = o.deliveries?.[0]?.delivery_address?.split('(')[0].trim()
+            return (
+              <div key={o.id} className="order-card">
+                <div className="order-card-header">
+                  <div>
+                    <strong>#{o.order_number || o.id.slice(0, 8)}</strong>
+                    <small>{new Date(o.created_at).toLocaleDateString()} · {itemCount} item(s)</small>
+                  </div>
+                  <span className={`status ${o.status === 'delivered' ? 'delivered' : 'processing'}`}>{o.status}</span>
                 </div>
-                <span className={`pill ${o.status === 'delivered' ? '' : o.status === 'cancelled' ? 'danger' : ''}`}
-                  style={{
-                    background: o.status === 'delivered' ? 'var(--success-light)' : o.status === 'cancelled' ? 'var(--danger-light)' : 'var(--primary-light)',
-                    color: o.status === 'delivered' ? 'var(--success)' : o.status === 'cancelled' ? 'var(--danger)' : 'var(--primary-dark)',
-                  }}>
-                  {o.status}
-                </span>
+                <div className="order-card-body">
+                  <div className="product-img">
+                    {first && imgMap[first.product_id] ? <img src={imgMap[first.product_id]} alt="" /> : <span style={{ fontSize: 26 }}>📦</span>}
+                  </div>
+                  <div className="product-info">
+                    <strong>{first?.products?.[0]?.name || `${itemCount} item(s)`}</strong>
+                    {first && <span>Qty {first.quantity}</span>}
+                  </div>
+                  <div className="price">{CEDI_FULL(o.total_amount)}</div>
+                </div>
+                <div className="order-card-footer">
+                  <span>{o.status === 'delivered' ? 'Delivered' : 'Delivery'}{addr ? `: ${addr}` : ''}</span>
+                  <div className="buttons">
+                    <button className="small-btn" onClick={() => navigate('/account/receipts')}>View Receipt</button>
+                    <button className="small-btn primary" onClick={() => navigate(`/account/orders/${o.id}`)}>Track Order</button>
+                  </div>
+                </div>
               </div>
-              <div className="order-meta">
-                <div><span>Items</span>{o.order_items?.length || 0}</div>
-                <div><span>Total</span><span className="mono" style={{ fontWeight: 600 }}>GH₵ {Number(o.total_amount).toFixed(2)}</span></div>
-                {o.deliveries?.[0] && <div><span>Delivery</span>{o.deliveries[0].method === 'air' ? 'Air' : 'Sea'}</div>}
-              </div>
-              <div className="mini-rail">
-                <span className={o.status !== 'pending' ? 'done' : ''} />
-                <span className={['confirmed', 'processing', 'shipped', 'delivered'].includes(o.status) ? 'done' : ''} />
-                <span className={['shipped', 'delivered'].includes(o.status) ? 'done' : ''} />
-                <span className={o.status === 'delivered' ? 'done' : ''} />
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

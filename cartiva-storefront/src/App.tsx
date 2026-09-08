@@ -18,6 +18,7 @@ import AccountOrders from './pages/account/Orders'
 import AccountOrderDetails from './pages/account/OrderDetails'
 import AccountAddresses from './pages/account/Addresses'
 import AccountWishlist from './pages/account/Wishlist'
+import AccountReceipts from './pages/account/Receipts'
 import AccountCart from './pages/account/CartAccount'
 import AccountReviews from './pages/account/Reviews'
 import AccountNotifications from './pages/account/Notifications'
@@ -50,6 +51,7 @@ export default function App() {
               <Route path="/account/orders/:id" element={<AccountOrderDetails />} />
               <Route path="/account/addresses" element={<AccountAddresses />} />
               <Route path="/account/wishlist" element={<AccountWishlist />} />
+              <Route path="/account/receipts" element={<AccountReceipts />} />
               <Route path="/account/cart" element={<AccountCart />} />
               <Route path="/account/reviews" element={<AccountReviews />} />
               <Route path="/account/notifications" element={<AccountNotifications />} />
