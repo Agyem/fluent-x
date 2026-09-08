@@ -15,6 +15,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<'seevplus' | ''>('seevplus')
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod | ''>('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [deliveryNote, setDeliveryNote] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [placing, setPlacing] = useState(false)
@@ -108,7 +109,8 @@ export default function Checkout() {
       if (itemsErr) throw new Error(`Order created (${order.order_number}) but items failed: ${itemsErr.message}`)
 
       const expectedDate = getExpectedDeliveryDate(shippingMethod as ShippingMethod)
-      const fullAddress = `${deliveryAddress.trim()} (${customerName.trim()}, ${customerPhone.trim()})`
+      const note = deliveryNote.trim() ? ` — Note: ${deliveryNote.trim()}` : ''
+      const fullAddress = `${deliveryAddress.trim()} (${customerName.trim()}, ${customerPhone.trim()})${note}`
       const { error: delErr } = await supabase.from('deliveries').insert({
         order_id: order.id,
         method: shippingMethod,
@@ -162,7 +164,8 @@ export default function Checkout() {
                 <input className="input" placeholder="Full name" value={customerName} onChange={e => setCustomerName(e.target.value)} />
                 <input className="input" placeholder="Phone number" type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
               </div>
-              <textarea className="input" placeholder="Hostel / room / delivery note" style={{ marginTop: 10 }} value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} />
+              <input className="input" placeholder="Delivery address — e.g. Hall, room, street, city" style={{ marginTop: 10 }} value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} />
+              <textarea className="input" placeholder="Additional delivery note (optional)" style={{ marginTop: 10 }} value={deliveryNote} onChange={e => setDeliveryNote(e.target.value)} />
             </div>
 
             <div className="checkout-section">
