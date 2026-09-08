@@ -46,20 +46,17 @@ export default function Catalogue() {
               if (url) urlMap[prod.id] = url
             }
           } catch { /* no image */ }
-          if (prod.product_type === 'variable') {
-            try {
-              const vars = await getProductVariants(prod.id)
-              if (vars.length > 0) varMap[prod.id] = vars[0]
-              const priced = vars.filter(v => (v.sale_price ?? v.price) > 0)
-              if (priced.length > 0) {
-                const best = priced.reduce((min, v) => ((v.sale_price ?? v.price) < (min.sale_price ?? min.price) ? v : min))
-                priceMap[prod.id] = best.sale_price ?? best.price
-                if (!varMap[prod.id]) varMap[prod.id] = best
-              } else priceMap[prod.id] = null
-            } catch { priceMap[prod.id] = null }
-          } else {
-            priceMap[prod.id] = prod.sale_price ?? prod.base_price ?? null
-          }
+          // Fetch variants for ALL products — simple products carry a hidden "Default" variant.
+          try {
+            const vars = await getProductVariants(prod.id)
+            if (vars.length > 0) varMap[prod.id] = vars[0]
+            const priced = vars.filter(v => (v.sale_price ?? v.price) > 0)
+            if (priced.length > 0) {
+              const best = priced.reduce((min, v) => ((v.sale_price ?? v.price) < (min.sale_price ?? min.price) ? v : min))
+              priceMap[prod.id] = best.sale_price ?? best.price
+              if (!varMap[prod.id]) varMap[prod.id] = best
+            } else priceMap[prod.id] = prod.sale_price ?? prod.base_price ?? null
+          } catch { priceMap[prod.id] = prod.sale_price ?? prod.base_price ?? null }
         }))
         if (!cancelled) { setImageUrls(urlMap); setVariantPrices(priceMap); setFirstVariants(varMap) }
         if (user) {

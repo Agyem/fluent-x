@@ -65,20 +65,17 @@ export default function Home() {
         const urlMap: Record<string, string> = {}
         const varMap: Record<string, ProductVariant> = {}
         await Promise.all(p.map(async prod => {
-          if (prod.product_type === 'variable') {
-            try {
-              const vars: ProductVariant[] = await getProductVariants(prod.id)
-              if (vars.length > 0) varMap[prod.id] = vars[0]
-              const priced = vars.filter(v => v.price > 0 || (v.sale_price ?? 0) > 0)
-              if (priced.length > 0) {
-                const best = priced.reduce((min, v) => ((v.sale_price ?? v.price) < (min.sale_price ?? min.price) ? v : min))
-                priceMap[prod.id] = best.sale_price ?? best.price
-                if (!varMap[prod.id]) varMap[prod.id] = best
-              } else priceMap[prod.id] = null
-            } catch { priceMap[prod.id] = null }
-          } else {
-            priceMap[prod.id] = prod.sale_price ?? prod.base_price ?? null
-          }
+          // Fetch variants for ALL products — simple products carry a hidden "Default" variant.
+          try {
+            const vars: ProductVariant[] = await getProductVariants(prod.id)
+            if (vars.length > 0) varMap[prod.id] = vars[0]
+            const priced = vars.filter(v => v.price > 0 || (v.sale_price ?? 0) > 0)
+            if (priced.length > 0) {
+              const best = priced.reduce((min, v) => ((v.sale_price ?? v.price) < (min.sale_price ?? min.price) ? v : min))
+              priceMap[prod.id] = best.sale_price ?? best.price
+              if (!varMap[prod.id]) varMap[prod.id] = best
+            } else priceMap[prod.id] = prod.sale_price ?? prod.base_price ?? null
+          } catch { priceMap[prod.id] = prod.sale_price ?? prod.base_price ?? null }
           try {
             const imgs = await getProductImages(prod.id)
             if (imgs.length > 0 && imgs[0].storage_path) {
