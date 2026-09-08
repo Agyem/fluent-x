@@ -38,6 +38,7 @@ export default function AccountLayout() {
       <section className="section" style={{ paddingTop: 40 }}>
         <div className="container account-grid">
           <aside className="account-menu">
+            <button onClick={() => navigate('/')} style={{ color: 'var(--orange)', fontWeight: 800 }}>← Back to shop</button>
             {MENU.map(m => {
               const active = m.end ? location.pathname === '/account' : location.pathname.startsWith(m.path)
               return (
@@ -47,7 +48,6 @@ export default function AccountLayout() {
                 </button>
               )
             })}
-            <button onClick={() => navigate('/')}>← Back to shop</button>
             <button onClick={handleSignOut} style={{ color: 'var(--red)' }}>Sign out</button>
           </aside>
 
