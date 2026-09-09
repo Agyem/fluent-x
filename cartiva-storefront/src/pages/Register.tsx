@@ -63,7 +63,7 @@ export default function Register() {
           <div style={{ textAlign: 'center' }}>
             <div className="success-circle">✓</div>
             <h1 className="order-number">Account created!</h1>
-            <p style={{ color: '#6B7280', fontSize: 13, marginBottom: 20 }}>Your account has been created successfully. You can now log in to start shopping.</p>
+            <p style={{ color: '#737373', fontSize: 13, marginBottom: 20 }}>Your account has been created successfully. You can now log in to start shopping.</p>
             <Link to="/login" className="primary-btn full-btn">Log in</Link>
           </div>
         ) : (

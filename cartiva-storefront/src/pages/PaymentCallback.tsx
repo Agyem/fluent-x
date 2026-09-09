@@ -70,7 +70,7 @@ export default function PaymentCallback() {
           <div style={{ textAlign: 'center' }}>
             <div className="success-circle">✓</div>
             <h1 className="order-number">Payment confirmed.</h1>
-            <p style={{ color: '#6B7280', fontSize: 13, marginBottom: 24 }}>Your Seev Plus payment went through. We&apos;re preparing your order.</p>
+            <p style={{ color: '#737373', fontSize: 13, marginBottom: 24 }}>Your Seev Plus payment went through. We&apos;re preparing your order.</p>
             <Link to={`/account/orders/${state.orderId}`} className="primary-btn">View your order →</Link>
           </div>
         )}
@@ -79,7 +79,7 @@ export default function PaymentCallback() {
           <div style={{ textAlign: 'center' }}>
             <div className="success-circle" style={{ background: '#fef3c7', color: '#b45309' }}>…</div>
             <h1 className="order-number">Payment pending.</h1>
-            <p style={{ color: '#6B7280', fontSize: 13, marginBottom: 24 }}>Seev Plus hasn&apos;t confirmed it yet. This can take a few minutes — please don&apos;t pay twice.</p>
+            <p style={{ color: '#737373', fontSize: 13, marginBottom: 24 }}>Seev Plus hasn&apos;t confirmed it yet. This can take a few minutes — please don&apos;t pay twice.</p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button className="primary-btn" onClick={() => window.location.reload()}>Check again</button>
               <Link to={`/account/orders/${state.orderId}`} className="secondary-btn">View order</Link>
@@ -91,7 +91,7 @@ export default function PaymentCallback() {
           <div style={{ textAlign: 'center' }}>
             <div className="success-circle" style={{ background: '#fee2e2', color: 'var(--red)' }}>×</div>
             <h1 className="order-number">Payment didn&apos;t go through.</h1>
-            <p style={{ color: '#6B7280', fontSize: 13, marginBottom: 24 }}>{state.detail}</p>
+            <p style={{ color: '#737373', fontSize: 13, marginBottom: 24 }}>{state.detail}</p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link to={`/account/orders/${state.orderId}`} className="primary-btn">View order</Link>
               <Link to="/catalogue" className="secondary-btn">Continue shopping</Link>
@@ -103,7 +103,7 @@ export default function PaymentCallback() {
           <div style={{ textAlign: 'center' }}>
             <div className="success-circle" style={{ background: '#fee2e2', color: 'var(--red)' }}>!</div>
             <h1 className="order-number">Couldn&apos;t confirm payment.</h1>
-            <p style={{ color: '#6B7280', fontSize: 13, marginBottom: 24 }}>{state.detail}</p>
+            <p style={{ color: '#737373', fontSize: 13, marginBottom: 24 }}>{state.detail}</p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button className="primary-btn" onClick={() => window.location.reload()}>Try again</button>
               <Link to="/account/orders" className="secondary-btn">My orders</Link>
