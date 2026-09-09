@@ -67,11 +67,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const removeItem = (variant_id: string) => setItems(prev => prev.filter(i => i.variant_id !== variant_id))
   const increase = (variant_id: string) => setItems(prev => prev.map(i => i.variant_id === variant_id ? { ...i, quantity: i.quantity + 1 } : i))
-  const decrease = (variant_id: string) => setItems(prev => prev.map(i => {
-    if (i.variant_id !== variant_id) return i
-    const next = i.quantity - 1
-    return next <= 0 ? i : { ...i, quantity: next }
-  }).filter(i => i.quantity > 0))
+  const decrease = (variant_id: string) => setItems(prev => prev
+    .map(i => i.variant_id === variant_id ? { ...i, quantity: i.quantity - 1 } : i)
+    .filter(i => i.quantity > 0))
   const clear = () => setItems([])
 
   const count = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items])
