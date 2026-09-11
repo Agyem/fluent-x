@@ -98,10 +98,15 @@ serve(async (req) => {
       throw new Error(payload.error ?? payload.message ?? 'Seev Plus session creation failed')
     }
 
+    const ref = payload.data.reference as string
+
+    // Save the Seev reference on the order (service role bypasses RLS)
+    await supabase.from('orders').update({ payment_reference: ref }).eq('id', order_id)
+
     return new Response(
       JSON.stringify({
         checkout_url: payload.data.checkout_url,
-        reference: payload.data.reference,
+        reference: ref,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
