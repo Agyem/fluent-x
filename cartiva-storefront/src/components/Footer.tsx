@@ -45,7 +45,7 @@ export default function Footer() {
               <button onClick={() => navigate('/account/support')}>Delivery policies</button>
               <button onClick={() => navigate('/account/support')}>Terms &amp; conditions</button>
               <button onClick={() => navigate('/account/support')}>Privacy policy</button>
-              <button onClick={() => navigate('/account/support')}>Refund policy</button>
+              <button onClick={() => navigate('/refund-policy')}>Refund policy</button>
               <a href="mailto:cartiva.info@gmail.com">cartiva.info@gmail.com</a>
             </div>
           </div>

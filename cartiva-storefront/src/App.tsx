@@ -27,6 +27,7 @@ import AccountSupport from './pages/account/Support'
 import AccountProfile from './pages/account/Profile'
 import AccountSecurity from './pages/account/Security'
 import AccountSettings from './pages/account/Settings'
+import RefundPolicy from './pages/RefundPolicy'
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
             </Route>
             <Route element={<RequireAuth><AccountLayout /></RequireAuth>}>
               <Route path="/account" element={<Account />} />
