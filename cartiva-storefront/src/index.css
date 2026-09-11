@@ -807,7 +807,7 @@ body.mobile-drawer-open { overflow: auto; }
   position: fixed;
   right: 22px;
   bottom: 22px;
-  z-index: 1500;
+  z-index: 2500;
   width: 56px;
   height: 56px;
   border-radius: 50%;
