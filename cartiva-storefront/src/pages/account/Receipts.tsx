@@ -24,7 +24,7 @@ export default function AccountReceipts() {
     let cancelled = false
     async function load() {
       try {
-        const { data: orders, error: oErr } = await supabase.from('orders').select('id, order_number, created_at').eq('customer_id', user!.id)
+        const { data: orders, error: oErr } = await supabase.from('orders').select('id, order_number, created_at').eq('customer_id', user!.id).neq('status', 'pending_payment')
         if (oErr) throw oErr
         const list = (orders ?? []) as { id: string; order_number: string | null; created_at: string }[]
         if (list.length === 0) { if (!cancelled) setReceipts([]); return }

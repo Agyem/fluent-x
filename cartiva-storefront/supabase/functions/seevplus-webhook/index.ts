@@ -171,6 +171,12 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Failed to create payment: ' + paymentError.message }), { status: 500, headers: JSON_HEADERS })
   }
 
+  // Mark order as paid so it appears in the customer's order list
+  await supabase.from('orders').update({ status: 'paid' }).eq('id', orderId)
+
+  // Update delivery status
+  await supabase.from('deliveries').update({ status: 'processing' }).eq('order_id', orderId)
+
   await supabase.from('order_updates').insert({
     order_id: orderId,
     title: 'Payment verified',

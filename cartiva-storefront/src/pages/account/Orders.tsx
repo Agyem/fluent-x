@@ -30,6 +30,7 @@ export default function AccountOrders() {
         const { data, error } = await supabase.from('orders')
           .select('id, order_number, status, total_amount, created_at, deliveries(method, status, delivery_address), order_items(quantity, product_id, products(name))')
           .eq('customer_id', user!.id)
+          .neq('status', 'pending_payment')
           .order('created_at', { ascending: false })
         if (error) throw error
         const list = (data || []) as Order[]

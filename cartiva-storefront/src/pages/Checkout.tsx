@@ -93,7 +93,7 @@ export default function Checkout() {
 
       const { data: order, error: oErr } = await supabase.from('orders').insert({
         customer_id: user.id,
-        status: 'pending',
+        status: 'pending_payment',
         total_amount: finalTotal,
       }).select('id, order_number').single()
       if (oErr || !order) throw new Error(oErr?.message ?? 'Failed to create order')
@@ -116,7 +116,7 @@ export default function Checkout() {
         method: shippingMethod,
         expected_delivery_date: expectedDate,
         delivery_address: fullAddress,
-        status: 'pending',
+        status: 'pending_payment',
       })
       if (delErr) console.warn('[checkout] deliveries insert failed:', delErr.message)
 

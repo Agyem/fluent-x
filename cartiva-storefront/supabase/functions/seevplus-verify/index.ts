@@ -79,6 +79,12 @@ serve(async (req) => {
 
     if (paymentError) throw new Error('Failed to create payment: ' + paymentError.message)
 
+    // Mark order as paid so it appears in the customer's order list
+    await supabase.from('orders').update({ status: 'paid' }).eq('id', order_id)
+
+    // Update delivery status
+    await supabase.from('deliveries').update({ status: 'processing' }).eq('order_id', order_id)
+
     await supabase.from('order_updates').insert({
       order_id,
       title: 'Payment verified',

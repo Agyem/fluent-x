@@ -38,7 +38,7 @@ export default function Account() {
       try {
         const { data: ordersData, error } = await supabase.from('orders')
           .select('id, order_number, status, total_amount, created_at, order_items(quantity, unit_price, product_id, products(name)), deliveries(delivery_address)')
-          .eq('customer_id', user!.id).order('created_at', { ascending: false }).limit(5)
+          .eq('customer_id', user!.id).neq('status', 'pending_payment').order('created_at', { ascending: false }).limit(5)
         if (error) throw error
         const list = (ordersData || []) as OrderRow[]
         if (!cancelled) setOrders(list)
