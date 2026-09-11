@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import Placeholder from '../components/Placeholder'
-import { SHIPPING_OPTIONS, getShippingFee, getExpectedDeliveryDate, type ShippingMethod } from '../lib/shipping'
+import { getExpectedDeliveryDate } from '../lib/shipping'
 
 const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -13,7 +13,6 @@ export default function Checkout() {
   const { items, subtotal: displaySubtotal, clear } = useCart()
   const navigate = useNavigate()
   const [paymentMethod, setPaymentMethod] = useState<'seevplus' | ''>('seevplus')
-  const [shippingMethod, setShippingMethod] = useState<ShippingMethod | ''>('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [deliveryNote, setDeliveryNote] = useState('')
   const [customerName, setCustomerName] = useState('')
@@ -53,12 +52,9 @@ export default function Checkout() {
     )
   }
 
-  const shippingFee = shippingMethod ? getShippingFee(shippingMethod as ShippingMethod) : 0
-
   const handlePlaceOrder = async () => {
     setError(null)
     if (!paymentMethod) { setError('Please select a payment method.'); return }
-    if (!shippingMethod) { setError('Please select a delivery method.'); return }
     if (!deliveryAddress.trim()) { setError('Please provide a delivery address.'); return }
     if (!customerName.trim() || !customerPhone.trim()) { setError('Please enter your name and phone number.'); return }
 
@@ -82,8 +78,7 @@ export default function Checkout() {
         authoritativeSubtotal += authoritativePrice * cartItem.quantity
       }
 
-      const fee = getShippingFee(shippingMethod as ShippingMethod)
-      const finalTotal = authoritativeSubtotal + fee
+      const finalTotal = authoritativeSubtotal
 
       const { error: custErr } = await supabase.from('customers').upsert(
         { id: user.id, email: user.email ?? '' },
@@ -108,12 +103,12 @@ export default function Checkout() {
       const { error: itemsErr } = await supabase.from('order_items').insert(itemsToInsert)
       if (itemsErr) throw new Error(`Order created (${order.order_number}) but items failed: ${itemsErr.message}`)
 
-      const expectedDate = getExpectedDeliveryDate(shippingMethod as ShippingMethod)
+      const expectedDate = getExpectedDeliveryDate('free')
       const note = deliveryNote.trim() ? ` — Note: ${deliveryNote.trim()}` : ''
       const fullAddress = `${deliveryAddress.trim()} (${customerName.trim()}, ${customerPhone.trim()})${note}`
       const { error: delErr } = await supabase.from('deliveries').insert({
         order_id: order.id,
-        method: shippingMethod,
+        method: 'free',
         expected_delivery_date: expectedDate,
         delivery_address: fullAddress,
         status: 'pending_payment',
@@ -121,7 +116,6 @@ export default function Checkout() {
       if (delErr) console.warn('[checkout] deliveries insert failed:', delErr.message)
 
       if (paymentMethod === 'seevplus') {
-        // Order saved first (per Seev docs) — now create the hosted session server-side.
         const { data: session, error: sessErr } = await supabase.functions.invoke('seevplus-init', {
           body: {
             order_id: order.id,
@@ -137,7 +131,7 @@ export default function Checkout() {
       }
 
       clear()
-      navigate(`/account/orders/${order.id}`, { state: { justCreated: true, shippingMethod, fee, finalTotal } })
+      navigate(`/account/orders/${order.id}`, { state: { justCreated: true, fee: 0, finalTotal } })
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -169,23 +163,7 @@ export default function Checkout() {
             </div>
 
             <div className="checkout-section">
-              <h3>2. Delivery method</h3>
-              {(['air', 'sea'] as const).map(m => {
-                const opt = SHIPPING_OPTIONS[m]
-                const selected = shippingMethod === m
-                return (
-                  <div key={m} className={`location-option${selected ? ' active' : ''}`} onClick={() => setShippingMethod(m)}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 800, fontSize: 13 }}>{opt.label} — GH₵ {opt.fee}</div>
-                      <div style={{ fontSize: 11, marginTop: 2, opacity: .75 }}>{opt.estimate}</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            <div className="checkout-section">
-              <h3>3. Payment</h3>
+              <h3>2. Payment</h3>
               <button className={`location-option${paymentMethod === 'seevplus' ? ' active' : ''}`} style={{ width: '100%' }} onClick={() => setPaymentMethod('seevplus')}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 800, fontSize: 13 }}>Seev Plus — Mobile Money</div>
@@ -204,8 +182,8 @@ export default function Checkout() {
                 <span>{CEDI(i.unit_price * i.quantity)}</span>
               </div>
             ))}
-            <div className="summary-line"><span>Shipping</span><span>{shippingMethod ? CEDI(shippingFee) : '—'}</span></div>
-            <div className="summary-total"><span>Total</span><span>{CEDI(displaySubtotal + shippingFee)}</span></div>
+            <div className="summary-line"><span>Shipping</span><span style={{ color: 'var(--green)' }}>Free</span></div>
+            <div className="summary-total"><span>Total</span><span>{CEDI(displaySubtotal)}</span></div>
             <button className="primary-btn full-btn" style={{ marginTop: 20 }} disabled={placing} onClick={handlePlaceOrder}>
               {placing ? 'Placing order...' : 'Place order →'}
             </button>
