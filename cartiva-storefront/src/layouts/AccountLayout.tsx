@@ -81,6 +81,7 @@ export default function AccountLayout() {
           <button className="nav-icon" onClick={() => navigate('/search')} aria-label="Search">⌕</button>
           <button className="nav-icon" onClick={() => navigate('/account/wishlist')} aria-label="Wishlist">♡</button>
           <button className="nav-icon" onClick={() => navigate('/account/cart')} aria-label="Cart">🛒{count > 0 && <span className="cart-count">{count}</span>}</button>
+          <button className="acct-signout-btn" onClick={handleSignOut}>Sign out</button>
         </div>
       </header>
 
