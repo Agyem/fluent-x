@@ -125,6 +125,9 @@ export default function Checkout() {
         if (sessErr || !session?.checkout_url) {
           throw new Error(session?.error ?? sessErr?.message ?? 'Could not start Seev Plus payment. Your order is saved — please retry from your orders page or contact support.')
         }
+        if (session?.reference) {
+          await supabase.from('orders').update({ payment_reference: session.reference }).eq('id', order.id)
+        }
         clear()
         window.location.href = session.checkout_url
         return

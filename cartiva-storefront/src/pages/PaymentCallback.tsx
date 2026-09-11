@@ -25,15 +25,27 @@ export default function PaymentCallback() {
   const [state, setState] = useState<State>({ kind: 'verifying' })
 
   const orderId = params.get('order_id')
-  const reference = pickReference(params)
 
   useEffect(() => {
     let cancelled = false
     async function verify() {
-      if (!orderId || !reference) {
+      if (!orderId) {
+        if (!cancelled) setState({ kind: 'error', detail: 'Missing order reference. If you completed payment, check your orders page — your order is saved.' })
+        return
+      }
+
+      let reference = pickReference(params)
+
+      if (!reference) {
+        const { data: order } = await supabase.from('orders').select('payment_reference').eq('id', orderId).single()
+        reference = order?.payment_reference ?? null
+      }
+
+      if (!reference) {
         if (!cancelled) setState({ kind: 'error', detail: 'Missing payment reference. If you completed payment, check your orders page — your order is saved.' })
         return
       }
+
       setState({ kind: 'verifying' })
       try {
         const { data, error } = await supabase.functions.invoke('seevplus-verify', {
@@ -59,7 +71,7 @@ export default function PaymentCallback() {
     verify()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId, reference])
+  }, [orderId])
 
   return (
     <div className="page">
