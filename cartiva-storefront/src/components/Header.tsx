@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { supabase } from '../lib/supabase'
@@ -60,7 +61,34 @@ export default function Header() {
     }
   }
 
+  const mobileNav = createPortal(
+    <nav className="mobile-bottom-nav">
+      <button className={`mobile-nav-item${location.pathname === '/' ? ' active' : ''}`} data-mobile-nav="home" onClick={() => navigate('/')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" /></svg>
+        Home
+      </button>
+      <button className={`mobile-nav-item${location.pathname.startsWith('/catalogue') ? ' active' : ''}`} data-mobile-nav="shop" onClick={() => navigate('/catalogue')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 7h14l-1 13H6L5 7Z" /><path d="M9 7a3 3 0 0 1 6 0" /></svg>
+        Shop
+      </button>
+      <button className={`mobile-nav-item${location.pathname.startsWith('/search') ? ' active' : ''}`} data-mobile-nav="search" onClick={() => navigate('/search')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+        Search
+      </button>
+      <button className={`mobile-nav-item${location.pathname.startsWith('/account/wishlist') ? ' active' : ''}`} data-mobile-nav="wishlist" onClick={() => navigate(user ? '/account/wishlist' : '/login')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20.8 8.6c0 5.2-8.8 10.1-8.8 10.1S3.2 13.8 3.2 8.6A4.6 4.6 0 0 1 12 6.2a4.6 4.6 0 0 1 8.8 2.4Z" /></svg>
+        Wishlist
+      </button>
+      <button className={`mobile-nav-item${location.pathname.startsWith('/account') ? ' active' : ''}`} data-mobile-nav="account" onClick={() => navigate(user ? '/account' : '/login')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c.8-3.8 3.2-5.7 7-5.7s6.2 1.9 7 5.7" /></svg>
+        Account
+      </button>
+    </nav>,
+    document.body
+  )
+
   return (
+    <>
     <header className="site-header">
       <div className="container header-inner">
         <button className="logo" onClick={() => navigate('/')}>
@@ -119,29 +147,8 @@ export default function Header() {
       </div>
 
       <FloatingCart open={cartOpen} onClose={() => setCartOpen(false)} onOpen={() => setCartOpen(true)} />
-
-      <nav className="mobile-bottom-nav">
-        <button className={`mobile-nav-item${location.pathname === '/' ? ' active' : ''}`} data-mobile-nav="home" onClick={() => navigate('/')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" /></svg>
-          Home
-        </button>
-        <button className={`mobile-nav-item${location.pathname.startsWith('/catalogue') ? ' active' : ''}`} data-mobile-nav="shop" onClick={() => navigate('/catalogue')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 7h14l-1 13H6L5 7Z" /><path d="M9 7a3 3 0 0 1 6 0" /></svg>
-          Shop
-        </button>
-        <button className={`mobile-nav-item${location.pathname.startsWith('/search') ? ' active' : ''}`} data-mobile-nav="search" onClick={() => navigate('/search')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
-          Search
-        </button>
-        <button className={`mobile-nav-item${location.pathname.startsWith('/account/wishlist') ? ' active' : ''}`} data-mobile-nav="wishlist" onClick={() => navigate(user ? '/account/wishlist' : '/login')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20.8 8.6c0 5.2-8.8 10.1-8.8 10.1S3.2 13.8 3.2 8.6A4.6 4.6 0 0 1 12 6.2a4.6 4.6 0 0 1 8.8 2.4Z" /></svg>
-          Wishlist
-        </button>
-        <button className={`mobile-nav-item${location.pathname.startsWith('/account') ? ' active' : ''}`} data-mobile-nav="account" onClick={() => navigate(user ? '/account' : '/login')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c.8-3.8 3.2-5.7 7-5.7s6.2 1.9 7 5.7" /></svg>
-          Account
-        </button>
-      </nav>
     </header>
+    {mobileNav}
+    </>
   )
 }
