@@ -675,6 +675,7 @@ body.mobile-drawer-open { overflow: auto; }
   .acct .mobile-nav button { border: 0; background: none; color: #999; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
 .acct .mobile-nav button.active { color: var(--orange); font-weight: 800; }
 .acct .mobile-nav span { font-size: 18px; }
+}
 
 /* ==========================================================================
    Responsive Side Cart Drawer
@@ -840,7 +841,6 @@ body.mobile-drawer-open { overflow: auto; }
 @keyframes fabIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
 @media (max-width: 720px) {
   .cart-fab { bottom: 84px; right: 14px; }
-}
   .acct .order-card-body { padding: 14px; }
   .acct .order-card-footer { display: block; }
   .acct .buttons { margin-top: 11px; }
