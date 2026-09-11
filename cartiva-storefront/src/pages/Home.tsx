@@ -287,17 +287,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <section className="section">
-        <div className="container">
-          <div className="benefit-grid">
-            <div className="benefit"><div className="benefit-icon">⚡</div><h4>Made for students</h4><p>Products selected around everyday student life.</p></div>
-            <div className="benefit"><div className="benefit-icon">📍</div><h4>Campus focused</h4><p>Delivery designed around your campus location.</p></div>
-            <div className="benefit"><div className="benefit-icon">🛍</div><h4>Simple shopping</h4><p>No unnecessary steps between you and your order.</p></div>
-            <div className="benefit"><div className="benefit-icon">✓</div><h4>Order tracking</h4><p>Keep your order information available after checkout.</p></div>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }
