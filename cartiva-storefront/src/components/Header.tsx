@@ -146,7 +146,7 @@ export default function Header() {
         </div>
       </div>
 
-      <FloatingCart open={cartOpen} onClose={() => setCartOpen(false)} onOpen={() => setCartOpen(true)} />
+      <FloatingCart open={cartOpen} onClose={() => setCartOpen(false)} />
     </header>
     {mobileNav}
     </>

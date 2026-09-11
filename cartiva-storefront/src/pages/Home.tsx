@@ -14,15 +14,33 @@ const CEDI = (n: number) => 'GH₵ ' + n.toLocaleString('en-GH', { minimumFracti
 
 function catIcon(name: string, i: number) {
   const n = name.toLowerCase()
-  if (n.includes('stud') || n.includes('station') || n.includes('book')) return '📚'
-  if (n.includes('laptop') || n.includes('tech') || n.includes('accessor') || n.includes('audio') || n.includes('wear')) return '⌨️'
-  if (n.includes('hostel') || n.includes('home') || n.includes('appliance')) return '🎒'
-  if (n.includes('lab')) return '🧪'
-  if (n.includes('fashion') || n.includes('cloth') || n.includes('shoe')) return '👟'
-  if (n.includes('sport') || n.includes('fit')) return '🏃'
-  if (n.includes('phone') || n.includes('smart')) return '📱'
-  if (n.includes('head') || n.includes('ear')) return '🎧'
-  return ['📚', '⌨️', '🎒', '🧪', '👟', '🏃'][i % 6]
+  const icons = [
+    // books / study
+    <svg key="books" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>,
+    // laptop / tech
+    <svg key="laptop" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M2 20h20" /></svg>,
+    // home / hostel
+    <svg key="home" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+    // lab
+    <svg key="lab" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6" /><path d="M10 9V3" /><path d="M14 9V3" /><path d="M6 21h12" /><path d="M8 21V10l4-4 4 4v11" /></svg>,
+    // fashion
+    <svg key="fashion" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46 16 2 12 5 8 2 3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" /></svg>,
+    // sport
+    <svg key="sport" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>,
+    // phone
+    <svg key="phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" /><path d="M12 18h.01" /></svg>,
+    // audio
+    <svg key="audio" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" /></svg>,
+  ]
+  if (n.includes('stud') || n.includes('station') || n.includes('book')) return icons[0]
+  if (n.includes('laptop') || n.includes('tech') || n.includes('accessor') || n.includes('audio') || n.includes('wear')) return icons[1]
+  if (n.includes('hostel') || n.includes('home') || n.includes('appliance')) return icons[2]
+  if (n.includes('lab')) return icons[3]
+  if (n.includes('fashion') || n.includes('cloth') || n.includes('shoe')) return icons[4]
+  if (n.includes('sport') || n.includes('fit')) return icons[5]
+  if (n.includes('phone') || n.includes('smart')) return icons[6]
+  if (n.includes('head') || n.includes('ear')) return icons[7]
+  return icons[i % icons.length]
 }
 function catBlurb(name: string) {
   const n = name.toLowerCase()
