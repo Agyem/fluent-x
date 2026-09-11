@@ -165,7 +165,6 @@ export default function Home() {
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <div className="hero-kicker"><span className="live-dot" />STUDENT COMMERCE, REIMAGINED</div>
             <h1 className="hero-title">Everything you need. <em>Delivered.</em></h1>
             <p className="hero-description">From study essentials and gadgets to fashion, laboratory gear and hostel needs — Cartiva brings everyday student shopping into one simple place.</p>
             <div className="hero-buttons">
