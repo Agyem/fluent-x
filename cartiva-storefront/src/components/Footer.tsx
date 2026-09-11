@@ -11,6 +11,12 @@ export default function Footer() {
           <div className="footer-brand">
             <div className="logo">CARTIVA<span>.</span></div>
             <p>Everything you need. Delivered to you. A student-focused commerce platform built around everyday campus life.</p>
+            <div className="footer-social">
+              <a href="https://www.facebook.com/profile.php?id=61594272832003" target="_blank" rel="noopener noreferrer" title="Facebook">f</a>
+              <a href="https://wa.me/qr/Y4QSV6G5HXJMO1" target="_blank" rel="noopener noreferrer" title="WhatsApp">wa</a>
+              <a href="https://t.me/cartivashop" target="_blank" rel="noopener noreferrer" title="Telegram">tg</a>
+            </div>
+            <div className="footer-contact-note">support@cartiva.com</div>
           </div>
 
           <div>
