@@ -16,17 +16,17 @@ export const SHIPPING_OPTIONS = {
   },
 } as const
 
-export function getShippingFee(method: ShippingMethod): number {
+export function getShippingFee(_method: ShippingMethod): number {
   return 0
 }
 
-export function getExpectedDeliveryDate(method: ShippingMethod): string {
+export function getExpectedDeliveryDate(_method: ShippingMethod): string {
   const days = 5
   const d = new Date()
   d.setDate(d.getDate() + days)
   return d.toISOString().split('T')[0]
 }
 
-export function formatShippingLabel(method: ShippingMethod): string {
+export function formatShippingLabel(_method: ShippingMethod): string {
   return 'Free Delivery · Standard · 3–7 days'
 }
