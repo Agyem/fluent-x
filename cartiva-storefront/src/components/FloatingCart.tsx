@@ -9,7 +9,7 @@ const CEDI = (n: number) => 'GH₵ ' + Number(n).toLocaleString('en-GH', { minim
 // Rendered in a body portal: the site header uses backdrop-filter, which
 // creates a containing block that breaks `position: fixed` for descendants.
 // Portaling keeps the drawer anchored to the viewport with correct z-index.
-export default function FloatingCart({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function FloatingCart({ open, onClose, onOpen }: { open: boolean; onClose: () => void; onOpen: () => void }) {
   const { items, subtotal, removeItem, increase, decrease } = useCart()
   const count = items.reduce((s, i) => s + i.quantity, 0)
 
@@ -27,6 +27,12 @@ export default function FloatingCart({ open, onClose }: { open: boolean; onClose
 
   return createPortal(
     <>
+      {count > 0 && !open && (
+        <button className="cart-fab" onClick={onOpen} aria-label="Open cart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.4L21 8H6" /><circle cx="9" cy="20" r="1" /><circle cx="18" cy="20" r="1" /></svg>
+          <span className="cart-fab-count">{count}</span>
+        </button>
+      )}
       <div className={`cart-drawer-overlay${open ? ' is-active' : ''}`} onClick={onClose} aria-hidden={!open} />
       <aside className={`cart-drawer${open ? ' is-open' : ''}`} role="dialog" aria-label="Shopping cart" aria-hidden={!open}>
         <div className="cart-drawer-header">

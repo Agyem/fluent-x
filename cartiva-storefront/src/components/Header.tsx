@@ -118,14 +118,7 @@ export default function Header() {
         </div>
       </div>
 
-      <FloatingCart open={cartOpen} onClose={() => setCartOpen(false)} />
-
-      {count > 0 && !cartOpen && (
-        <button className="cart-fab" onClick={() => setCartOpen(true)} aria-label="Open cart">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.4L21 8H6" /><circle cx="9" cy="20" r="1" /><circle cx="18" cy="20" r="1" /></svg>
-          <span className="cart-fab-count">{count}</span>
-        </button>
-      )}
+      <FloatingCart open={cartOpen} onClose={() => setCartOpen(false)} onOpen={() => setCartOpen(true)} />
 
       <nav className="mobile-bottom-nav">
         <button className={`mobile-nav-item${location.pathname === '/' ? ' active' : ''}`} data-mobile-nav="home" onClick={() => navigate('/')}>
