@@ -672,11 +672,10 @@ body.mobile-drawer-open { overflow: auto; }
   .acct .metric { padding: 14px; }
   .acct .metric-icon { width: 37px; height: 37px; }
   .acct .content-layout { display: block; margin-top: 15px; }
-  .acct .acct-sidebar { position: static; width: 100%; display: flex; flex-wrap: nowrap; gap: 6px; padding: 10px; border-radius: 16px; overflow-x: auto; scrollbar-width: none; }
-  .acct .acct-sidebar::-webkit-scrollbar { display: none; }
-  .acct .nav-label { display: none; }
-  .acct .side-divider { display: none; }
-  .acct .side-link { width: auto; white-space: nowrap; padding: 8px 14px; font-size: 12px; gap: 6px; }
+  .acct .acct-sidebar { position: static; width: 100%; display: block; padding: 10px; border-radius: 16px; }
+  .acct .nav-label { display: block; }
+  .acct .side-divider { display: block; }
+  .acct .side-link { width: 100%; white-space: normal; padding: 12px; font-size: 13px; gap: 11px; }
   .acct .section-head h2 { font-size: 24px; }
   .acct .overview-grid { grid-template-columns: 1fr; }
   .acct .panel { padding: 17px; border-radius: 17px; }
