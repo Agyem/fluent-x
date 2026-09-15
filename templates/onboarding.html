@@ -6,16 +6,16 @@
         <div class="ob-steps" id="obDots"><span class="on"></span><span></span><span></span><span></span></div>
 
         <!-- STEP 1 -->
-        <div class="ob-step" data-step="1">
-            <div style="font-size:40px">👋</div>
+        <div class="ob-section" data-step="1">
+            <div style="font-size:40px;margin-bottom:12px">👋</div>
             <h1>Welcome to Fluent X, {{ user['full_name'].split(' ')[0] }}!</h1>
-            <p style="color:var(--muted)">Let's set up your learning path in under a minute. You'll pick your level, set a daily goal, then take a short placement test.</p>
+            <p style="color:var(--muted);margin-bottom:24px">Let's set up your learning path in under a minute. You'll pick your level, set a daily goal, then take a short placement test.</p>
             <button class="btn btn-primary btn-lg btn-block ob-next">Let's Go →</button>
         </div>
 
         <form method="POST" action="{{ url_for('onboarding') }}" id="obForm" style="display:none">
             <!-- STEP 2 -->
-            <div class="ob-step" data-step="2" style="display:none">
+            <div class="ob-section" data-step="2" style="display:none">
                 <h1>What's your current English level?</h1>
                 <p style="color:var(--muted)">Be honest — the placement test will fine-tune this.</p>
                 <div class="ob-opts">
@@ -27,7 +27,7 @@
             </div>
 
             <!-- STEP 3 -->
-            <div class="ob-step" data-step="3" style="display:none">
+            <div class="ob-section" data-step="3" style="display:none">
                 <h1>Daily practice goal</h1>
                 <p style="color:var(--muted)">Small daily habits beat long weekend sessions.</p>
                 <div class="ob-opts">
@@ -39,8 +39,8 @@
             </div>
 
             <!-- STEP 4 -->
-            <div class="ob-step" data-step="4" style="display:none">
-                <div style="font-size:40px">📝</div>
+            <div class="ob-section" data-step="4" style="display:none">
+                <div style="font-size:40px;margin-bottom:12px">📝</div>
                 <h1>Placement test</h1>
                 <p style="color:var(--muted)">A short 10-question test helps Fluent X understand your current English ability and recommend the right starting level. It takes about 3 minutes.</p>
                 <div class="ob-nav"><button type="button" class="btn btn-ghost btn-md ob-back">← Back</button><button type="submit" class="btn btn-primary btn-md">Save &amp; Start Test →</button></div>
@@ -54,7 +54,7 @@
   var form = document.getElementById('obForm');
   function show(n){
     step = n;
-    document.querySelectorAll('.ob-step').forEach(function(el){
+    document.querySelectorAll('.ob-section').forEach(function(el){
       el.style.display = (parseInt(el.dataset.step,10) === n) ? 'block' : 'none';
     });
     if (form) form.style.display = n === 1 ? 'none' : 'block';
