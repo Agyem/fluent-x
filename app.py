@@ -188,6 +188,17 @@ def init_db():
     seed_content(db)
     seed_writing_prompts(db)
 
+    # Auto-create default user if none exist (survives Render deploys)
+    if db.execute('SELECT COUNT(*) FROM users').fetchone()[0] == 0:
+        from datetime import datetime
+        default_pw = generate_password_hash('FluentX2026!')
+        db.execute(
+            'INSERT INTO users (full_name, email, password_hash, level, onboarding_completed, created_at) VALUES (?,?,?,?,?,?)',
+            ('Nana Agyemang', 'nana@fluentx.com', default_pw, 'Intermediate', 1, datetime.now().isoformat())
+        )
+        db.commit()
+        print('Default user created: nana@fluentx.com / FluentX2026!')
+
 @app.teardown_appcontext
 def teardown_db(exception):
     close_db(exception)
