@@ -52,9 +52,10 @@ a{text-decoration:none;color:inherit}
 .topbar-inner{max-width:1280px;margin:0 auto;height:72px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand-nav{display:flex;align-items:center;gap:24px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px}
-.brand-mark{width:34px;height:34px;background:linear-gradient(135deg,#00F2FE,#4FACFE);border-radius:10px;display:grid;place-items:center;position:relative;color:#0B0F17;font-weight:800;font-size:20px}
+.brand-mark{width:34px;height:34px;background:linear-gradient(135deg,#00F2FE,#4FACFE);border-radius:10px;display:grid;place-items:center;position:relative;color:#0B0F17;font-weight:800;font-size:20px;overflow:hidden;flex-shrink:0}
 .brand-mark.sm{width:24px;height:24px;font-size:14px;border-radius:7px}
-.brand-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;background:#0B0F17;border-radius:50%;opacity:.3}
+.brand-mark svg{width:22px;height:22px}
+.brand-mark.sm svg{width:16px;height:16px}
 .brand-name{letter-spacing:-.02em}
 .brand-x-letter{color:var(--primary)}
 .pill-nav{display:flex;gap:4px;background:var(--surface-low);padding:3px;border-radius:12px}
