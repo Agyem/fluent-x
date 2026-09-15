@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}Dashboard — Fluent X{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-hero">
+        <div class="hero-inner">
+            <div class="hero-badge">
+                <span class="hero-icon">✨</span>
+                <span>{{ user['level'] }}</span>
+            </div>
+            <h1 class="hero-title">Welcome back, {{ user['full_name'].split(' ')[0] }}</h1>
+            <p class="hero-subtitle">You're building real fluency through speaking and writing practice. Keep going.</p>
+        </div>
+    </div>
+
+    <div class="dashboard-stats">
+        <div class="stat-card stat-streak">
+            <div class="stat-icon"><span>🔥</span></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ user['streak'] }}</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+        </div>
+        <div class="stat-card stat-orange">
+            <div class="stat-icon"><span>⚡</span></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ user['xp'] }}</div>
+                <div class="stat-label">XP Earned</div>
+            </div>
+        </div>
+        <div class="stat-card stat-blue">
+            <div class="stat-icon"><span>🎯</span></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ qs.accuracy }}%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-actions-grid">
+        <a href="{{ url_for('speak') }}" class="action-card speak-action">
+            <div class="action-icon">🎤</div>
+            <h3 class="action-title">Start Speaking</h3>
+            <p class="action-desc">Choose a topic and record a timed speaking session</p>
+            <span class="action-stat">{{ ss.total }} sessions · {{ ss.total_minutes }} min total</span>
+            <span class="action-arrow">→</span>
+        </a>
+        <a href="{{ url_for('write') }}" class="action-card write-action">
+            <div class="action-icon">✍️</div>
+            <h3 class="action-title">Start Writing</h3>
+            <p class="action-desc">Pick a prompt and write a structured essay</p>
+            <span class="action-stat">{{ ws.submitted }} essays · {{ ws.total_words }} words</span>
+            <span class="action-arrow">→</span>
+        </a>
+    </div>
+
+    {# ===== AI INSIGHTS SECTION ===== #}
+    <div class="section-header">
+        <h2 class="section-title">Insights</h2>
+    </div>
+
+    {% if top_mistake %}
+    <div class="insight-card">
+        <div class="insight-icon">📋</div>
+        <div class="insight-content">
+            <h3 class="insight-title">Most Common Mistake</h3>
+            <p class="insight-text">{{ top_mistake.description }}</p>
+            <span class="insight-count">Occurred {{ top_mistake.count }} times</span>
+        </div>
+    </div>
+    {% else %}
+    <div class="insight-card empty-insight">
+        <div class="insight-icon">📊</div>
+        <div class="insight-content">
+            <h3 class="insight-title">Build Your Insights</h3>
+            <p class="insight-text">Complete speaking and writing sessions to start receiving personalized insights about your progress and common mistakes.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not ai_available %}
+    <div class="ai-status-card">
+        <div class="ai-status-icon">🤖</div>
+        <div class="ai-status-content">
+            <h3 class="ai-status-title">AI Analysis</h3>
+            <p class="ai-status-text">AI-powered feedback is not configured yet. Configure an AI provider in <code>.env</code> to receive detailed analysis of your speaking and writing.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section-header">
+        <h2 class="section-title">Quick Actions</h2>
+    </div>
+    <div class="quick-actions">
+        <a href="{{ url_for('ai_conversation') }}" class="quick-action-item">
+            <span class="qa-icon">💬</span>
+            <span class="qa-text">AI Conversation</span>
+            <span class="qa-badge">Soon</span>
+        </a>
+        <a href="{{ url_for('mistakes') }}" class="quick-action-item">
+            <span class="qa-icon">📋</span>
+            <span class="qa-text">My Mistakes</span>
+            {% if top_mistake %}
+            <span class="qa-count">{{ top_mistake.count }}×</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('progress') }}" class="quick-action-item">
+            <span class="qa-icon">📊</span>
+            <span class="qa-text">View Progress</span>
+        </a>
+        <a href="{{ url_for('practice_category', category='grammar') }}" class="quick-action-item">
+            <span class="qa-icon">📝</span>
+            <span class="qa-text">Grammar Practice</span>
+            <span class="qa-count">{{ qs.accuracy }}%</span>
+        </a>
+    </div>
+
+    {% if recent %}
+    <div class="section-header">
+        <h2 class="section-title">Recent Activity</h2>
+    </div>
+    <div class="recent-list">
+        {% for r in recent %}
+        <div class="recent-item">
+            <div class="recent-icon">{% if r.type == 'speaking' %}🎤{% else %}✍️{% endif %}</div>
+            <div class="recent-info">
+                <div class="recent-title">{{ r.title }}</div>
+                <div class="recent-meta">
+                    {{ r.date }}
+                    {% if r.score %} · Score: {{ r.score }}/10{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-small">
+        <p>Complete your first speaking or writing session to see activity here.</p>
+    </div>
+    {% endif %}
+
+    <div class="section-header">
+        <h2 class="section-title">Practice Tracks</h2>
+        <p class="section-subtitle">Supplementary skills to reinforce your speaking and writing.</p>
+    </div>
+    <div class="practice-tracks">
+        {% for cat, icon, desc in [('Grammar','📝','Sentence structure and rules'),('Vocabulary','📚','Word knowledge and usage'),('Reading','📰','Comprehension practice')] %}
+        <a href="{{ url_for('practice_category', category=cat|lower) }}" class="practice-track-card">
+            <div class="track-icon">{{ icon }}</div>
+            <div class="track-info">
+                <h3 class="track-title">{{ cat }}</h3>
+                <p class="track-desc">{{ desc }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

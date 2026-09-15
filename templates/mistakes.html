@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}My Mistakes — Fluent X{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+
+    <div class="section-header">
+        <h1 class="section-title">My Mistakes</h1>
+        <p class="section-subtitle">Track recurring errors to improve faster. Mistakes are identified from your speaking and writing sessions.</p>
+    </div>
+
+    {# ===== MISTAKES CATEGORIES INFO ===== #}
+    <div class="mistakes-categories-info">
+        <p class="categories-label">Tracked categories:</p>
+        <div class="category-pills">
+            {% for cat in ['Grammar', 'Vocabulary', 'Sentence Structure', 'Fluency', 'Pronunciation', 'Transitions', 'Coherence', 'Essay Structure', 'Repeated Words'] %}
+            <span class="category-pill">{{ cat }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if grouped %}
+    <div class="mistakes-summary">
+        <div class="stat-card stat-orange">
+            <div class="stat-info">
+                <div class="stat-value">{{ mistakes|length }}</div>
+                <div class="stat-label">Unique Mistakes</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mistakes-grouped">
+        {% for category, items in grouped.items() %}
+        <div class="mistake-category-group">
+            <h3 class="category-heading">{{ category }}</h3>
+            {% for m in items %}
+            <div class="mistake-card">
+                <div class="mistake-header">
+                    <span class="mistake-desc">{{ m.description }}</span>
+                    <span class="mistake-count">{{ m.count }}×</span>
+                </div>
+                {% if m.example %}
+                <div class="mistake-example">"{{ m.example }}"</div>
+                {% endif %}
+                <div class="mistake-meta">
+                    Source: {{ m.source }}
+                    {% if m.source_attempt_id %} · Attempt #{{ m.source_attempt_id }}{% endif %}
+                    · Last seen: {{ m.updated_at[:10] }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <h3>No mistakes tracked yet</h3>
+        <p>Mistakes are automatically identified when AI analysis is enabled for your speaking and writing sessions. Submit speaking recordings and essays to start building your mistake profile.</p>
+    </div>
+    {% endif %}
+
+    <div class="mistakes-tip-card">
+        <div class="tip-icon">💡</div>
+        <div class="tip-content">
+            <h3 class="tip-title">How mistakes are tracked</h3>
+            <p class="tip-text">When AI analysis is configured, mistakes are automatically identified from your writing submissions and speaking sessions. The system groups similar mistakes and tracks how often they occur, helping you focus on the areas that need the most improvement.</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

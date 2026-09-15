@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Fluent X — English Fluency App{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>(function(){try{var t=localStorage.getItem('fx-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand-nav">
+                <a href="{{ url_for('index') }}" class="brand">
+                    <span class="brand-mark"><span class="brand-x">✕</span><span class="brand-dot"></span></span>
+                    <span class="brand-name">Fluent<span class="brand-x-letter">X</span></span>
+                </a>
+                {% if session.user_id %}
+                <nav class="pill-nav" id="pillNav">
+                    <a href="{{ url_for('dashboard') }}" class="pill-link {% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a>
+                    <a href="{{ url_for('speak') }}" class="pill-link {% if active_page == 'speak' %}active{% endif %}">Speak</a>
+                    <a href="{{ url_for('write') }}" class="pill-link {% if active_page == 'write' %}active{% endif %}">Write</a>
+                    <a href="{{ url_for('ai_conversation') }}" class="pill-link {% if active_page == 'ai_conversation' %}active{% endif %}">AI Conversation</a>
+                    <a href="{{ url_for('mistakes') }}" class="pill-link {% if active_page == 'mistakes' %}active{% endif %}">My Mistakes</a>
+                    <a href="{{ url_for('progress') }}" class="pill-link {% if active_page == 'progress' %}active{% endif %}">Progress</a>
+                    <a href="{{ url_for('profile') }}" class="pill-link {% if active_page == 'profile' %}active{% endif %}">Profile</a>
+                </nav>
+                {% endif %}
+            </div>
+            <div class="topbar-right">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+                {% if session.user_id %}
+                <div class="stat-pills">
+                    <span class="stat-pill streak">🔥 {{ user_streak|default(0) }} Days</span>
+                    <span class="stat-pill xp">⚡ {{ user_xp|default(0) }} XP</span>
+                    <span class="stat-pill mins">⏱ {{ user_minutes|default('0/20 min') }}</span>
+                </div>
+                <div class="user-chip">
+                    <span class="level-badge">{{ user_level|default('Beginner') }}</span>
+                    <a href="{{ url_for('profile') }}" class="avatar" title="{{ session.user_name }}">{{ (session.user_name or 'U')[0] }}</a>
+                    <div class="user-menu-wrap">
+                        <button class="menu-btn" id="userMenuBtn" aria-label="Menu">▾</button>
+                        <div class="user-menu" id="userMenu">
+                            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                            <a href="{{ url_for('profile') }}">Profile</a>
+                            <a href="{{ url_for('logout') }}">Logout</a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="auth-links">
+                    <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Get Started</a>
+                </div>
+                {% endif %}
+                {% if session.user_id %}
+                <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+                {% endif %}
+            </div>
+        </div>
+        {% if session.user_id %}
+        <div class="mobile-nav" id="mobileNav">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('speak') }}">Speak</a>
+            <a href="{{ url_for('write') }}">Write</a>
+            <a href="{{ url_for('ai_conversation') }}">AI Conversation</a>
+            <a href="{{ url_for('mistakes') }}">My Mistakes</a>
+            <a href="{{ url_for('progress') }}">Progress</a>
+            <a href="{{ url_for('profile') }}">Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+        {% endif %}
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}
+                        <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="brand-mark sm"><span class="brand-x">✕</span></span>
+                <strong>Fluent X</strong>
+                <span class="footer-note">&copy; 2026 Fluent X Ltd. Engineered for English Fluency.</span>
+            </div>
+            <div class="footer-links">
+                <a href="#">Methodology</a><a href="#">CEFR Framework</a><a href="#">Privacy Policy</a><a href="#">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

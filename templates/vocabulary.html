@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% set active_page = 'vocabulary' %}
+{% block title %}Vocabulary — Fluent X{% endblock %}
+{% block content %}
+<div class="wrap">
+    <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap">
+        <div>
+            <div class="eyebrow"><span class="tag" style="background:var(--primary-fixed);color:var(--primary)">Cognitive Lexicon</span><span class="tag-muted">● Active Recall Stage: Phase 3</span></div>
+            <h1 style="font-size:32px;font-weight:800;letter-spacing:-.02em">Vocabulary Vault &amp; Daily Lexicon</h1>
+            <p style="color:var(--muted);max-width:640px">Engineered for lifelong verbal fluency. Transition high-yield vocabulary from passive comprehension to active speech.</p>
+        </div>
+        <button class="btn btn-primary btn-md" onclick="document.getElementById('deck').scrollIntoView({behavior:'smooth'})">◈ Start Spaced Recall (18 Due)</button>
+    </div>
+
+    <div class="vocab-grid">
+        <div class="card wotd">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+                <span class="tag" style="background:var(--primary);color:#fff">Word of the Day</span>
+                <span class="tag" style="background:var(--tertiary-fixed);color:#0f0069">C1 Advanced</span>
+                <span class="tag" style="background:var(--surface-container);color:var(--on-variant)">Adjective / Verb</span>
+            </div>
+            <h2>Articulate <span class="phon">/ɑːrˈtɪk.jə.lət/</span></h2>
+            <div class="pron-bar"><button>🔊</button><div class="us-uk"><button class="on">US</button><button>UK</button></div><small style="color:var(--muted)">Stress on second syllable: ar-<b>TIC</b>-u-late</small></div>
+            <small style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Semantic Meaning</small>
+            <p style="font-size:17px;font-weight:500;margin:6px 0 14px">Expressing ideas clearly and effectively in speech or writing; able to speak fluently, coherently, and with persuasive precision.</p>
+            <small style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Corpus Contexts</small>
+            <div class="example">"She gave a remarkably <b style="color:var(--primary)">articulate</b> account of why the university curriculum needs modernizing."</div>
+            <div class="example">"An <b style="color:var(--primary)">articulate</b> presentation helps communicate complex technical insights."</div>
+            <div class="chips" style="margin-top:12px"><span>articulate speaker</span><span>highly articulate</span><span>struggle to articulate</span><span style="border:none;background:none;color:var(--tertiary);font-weight:700">Eloquent • Coherent • Expressive</span></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:24px" id="deck">
+            <div class="card card-pad">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <div><small style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Flashcard Deck</small><h3>Daily Retention Deck</h3></div>
+                    <span class="tag tag-amber">Card 3 / 18</span>
+                </div>
+                <div class="flashcard" id="flashcard">
+                    <span class="tag" style="background:var(--tertiary-fixed);color:#0f0069;align-self:center">C1 Level</span>
+                    <div style="font-size:26px;font-weight:800" id="cardWord">Substantiate</div>
+                    <div class="phon">/səbˈstæn.ʃi.eɪt/</div>
+                    <small id="cardHint" style="color:var(--muted);font-style:italic">(Tap to reveal definition &amp; usage)</small>
+                    <div id="cardAnswer" style="display:none;text-align:left"><p><b>To provide evidence</b> to support or prove the truth of an assertion.</p><p style="color:var(--muted);font-size:13px">"They had zero data to substantiate their bold claim."</p></div>
+                    <small style="color:var(--muted)">⇄ Click to flip card</small>
+                </div>
+                <div class="rate-grid">
+                    <button style="background:var(--error-container)">Forgot<small>&lt;10 min</small></button>
+                    <button style="background:var(--secondary-fixed)">Hard<small>1 day</small></button>
+                    <button style="background:var(--surface-high)">Good<small>3 days</small></button>
+                    <button style="background:var(--primary-fixed)">Easy<small>7 days</small></button>
+                </div>
+            </div>
+            <div class="card card-pad">
+                <h3>Retention Health</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+                    <div style="background:var(--surface-low);border-radius:12px;padding:14px"><small style="color:var(--muted)">REVIEW DUE TODAY</small><div style="font-size:26px;font-weight:800;color:var(--primary)">18</div><small style="color:var(--muted)">Avg: 3.5 min left</small></div>
+                    <div style="background:var(--surface-low);border-radius:12px;padding:14px"><small style="color:var(--muted)">30-DAY RETENTION</small><div style="font-size:26px;font-weight:800;color:var(--tertiary)">92.4%</div><small style="color:var(--muted)">+4.2% this month</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-pad">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+            <div><h3>Curated Saved Lexicon</h3><p style="color:var(--muted);font-size:13px">Active monitoring of word maturity and spaced repetition stages.</p></div>
+            <div style="display:flex;gap:8px"><button class="ctl">Mark as Mastered</button><button class="ctl">Generate Quiz</button></div>
+        </div>
+        <div style="overflow-x:auto">
+        <table class="lex-table">
+            <thead><tr><th>Word / Lemma</th><th>Phonetic</th><th>CEFR</th><th>Domain</th><th>Mastery</th><th>Pronounce</th></tr></thead>
+            <tbody>
+                <tr><td><b>Pragmatic</b> (adj.)<br><small style="color:var(--muted)">Dealing with things sensibly…</small></td><td style="font-family:monospace">/præɡˈmæt.ɪk/</td><td><span class="tag tag-amber">B2</span></td><td>Business &amp; Tech</td><td>Stage 4 — 85%<div class="mini-bar"><i style="width:85%"></i></div></td><td><button class="speaker">🔊</button></td></tr>
+                <tr><td><b>Nuanced</b> (adj.)<br><small style="color:var(--muted)">Subtle distinctions…</small></td><td style="font-family:monospace">/ˈnjuː.ɑːnst/</td><td><span class="tag" style="background:var(--tertiary-fixed);color:#0f0069">C1</span></td><td>Academic Word List</td><td>Stage 2 — 42%<div class="mini-bar"><i style="width:42%;background:var(--secondary)"></i></div></td><td><button class="speaker">🔊</button></td></tr>
+                <tr><td><b>Substantiate</b> (verb)<br><small style="color:var(--muted)">Provide evidence…</small></td><td style="font-family:monospace">/səbˈstæn.ʃi.eɪt/</td><td><span class="tag" style="background:var(--tertiary-fixed);color:#0f0069">C1</span></td><td>Academic Word List</td><td>Stage 1 — 20%<div class="mini-bar"><i style="width:20%;background:var(--secondary)"></i></div></td><td><button class="speaker">🔊</button></td></tr>
+                <tr><td><b>Resilient</b> (adj.)<br><small style="color:var(--muted)">Recover quickly…</small></td><td style="font-family:monospace">/rɪˈzɪl.jənt/</td><td><span class="tag tag-amber">B2</span></td><td>Everyday Idiomatic</td><td>Mastered — 96%<div class="mini-bar"><i style="width:96%;background:var(--tertiary)"></i></div></td><td><button class="speaker">🔊</button></td></tr>
+                <tr><td><b>Cognitive</b> (adj.)<br><small style="color:var(--muted)">Mental processes…</small></td><td style="font-family:monospace">/ˈkɒɡ.nə.tɪv/</td><td><span class="tag tag-amber">B2</span></td><td>Psychology &amp; Science</td><td>Mastered — 100%<div class="mini-bar"><i style="width:100%;background:var(--tertiary)"></i></div></td><td><button class="speaker">🔊</button></td></tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

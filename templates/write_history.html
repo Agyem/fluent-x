@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Writing History — Fluent X{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <a href="{{ url_for('write') }}" class="back-link">
+        <span class="back-arrow">←</span> Back to Writing
+    </a>
+
+    <div class="section-header">
+        <h1 class="section-title">Writing History</h1>
+    </div>
+
+    <div class="dashboard-stats">
+        <div class="stat-card stat-blue">
+            <div class="stat-info">
+                <div class="stat-value">{{ write_stats.total }}</div>
+                <div class="stat-label">Total Essays</div>
+            </div>
+        </div>
+        <div class="stat-card stat-orange">
+            <div class="stat-info">
+                <div class="stat-value">{{ write_stats.submitted }}</div>
+                <div class="stat-label">Submitted</div>
+            </div>
+        </div>
+        <div class="stat-card stat-purple">
+            <div class="stat-info">
+                <div class="stat-value">{{ write_stats.total_words }}</div>
+                <div class="stat-label">Words Written</div>
+            </div>
+        </div>
+    </div>
+
+    {% if attempts %}
+    <div class="history-list">
+        {% for a in attempts %}
+        <a href="{{ url_for('write_result', attempt_id=a.id) }}" class="recent-item">
+            <div class="recent-icon">{% if a.status == 'submitted' or a.status == 'reviewed' %}📊{% else %}📄{% endif %}</div>
+            <div class="recent-info">
+                <div class="recent-title">{{ a.title or 'Untitled Essay' }}</div>
+                <div class="recent-meta">
+                    📅 {{ a.created_at[:10] }} · {{ a.word_count }} words · {{ a.status|capitalize }}
+                    {% if a.overall_score %} · Score: {{ a.overall_score }}/10{% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">✍️</div>
+        <h3>No essays yet</h3>
+        <p>Start your first essay to begin building your writing profile.</p>
+        <a href="{{ url_for('write') }}" class="btn btn-primary">Start Writing</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}AI Conversation — Fluent X{% endblock %}
+{% block content %}
+<div class="ai-conversation-container">
+
+    <div class="section-header">
+        <h1 class="section-title">AI Conversation</h1>
+        <p class="section-subtitle">Practice real conversations with an AI tutor. Build fluency through natural dialogue.</p>
+    </div>
+
+    {% if not ai_available %}
+    <div class="analysis-error">
+        <div class="error-icon">🤖</div>
+        <h3>AI Not Configured</h3>
+        <p>AI conversation requires an AI provider to be configured. See <code>.env.example</code> for setup instructions.</p>
+        <a href="{{ url_for('speak') }}" class="btn btn-primary" style="margin-top:1rem;">Try Speaking Practice Instead</a>
+    </div>
+
+    {% elif not started %}
+    {# Topic selection screen #}
+    <div class="conv-topics-grid">
+        {% for t_id, t_name, t_desc in topics %}
+        <button class="conv-topic-card" onclick="startConversation('{{ t_id }}')">
+            <span class="conv-topic-icon">
+                {% if t_id == 'daily_life' %}🏠
+                {% elif t_id == 'travel' %}✈️
+                {% elif t_id == 'work' %}💼
+                {% elif t_id == 'technology' %}💻
+                {% elif t_id == 'education' %}📚
+                {% else %}💬{% endif %}
+            </span>
+            <span class="conv-topic-name">{{ t_name }}</span>
+            <span class="conv-topic-desc">{{ t_desc }}</span>
+        </button>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    {# Active conversation #}
+    <div class="conv-chat-area">
+        <div class="conv-header">
+            <span class="conv-topic-badge">{{ current_topic }}</span>
+            <button class="btn btn-sm btn-outline" onclick="endConversation()">End Chat</button>
+        </div>
+
+        <div class="conv-messages" id="chatMessages">
+            {% for msg in messages %}
+            <div class="conv-msg {{ 'conv-msg-user' if msg.role == 'user' else 'conv-msg-ai' }}">
+                <div class="conv-msg-avatar">{{ 'You' if msg.role == 'user' else 'AI' }}</div>
+                <div class="conv-msg-text">{{ msg.content }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <form class="conv-input-area" id="chatForm" onsubmit="sendMessage(event)">
+            <input type="text" id="chatInput" class="conv-input" placeholder="Type your message..." autocomplete="off" autofocus>
+            <button type="submit" class="btn btn-primary conv-send-btn" id="sendBtn">Send</button>
+        </form>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+async function startConversation(topic) {
+    const form = new FormData();
+    form.append('action', 'start');
+    form.append('topic', topic);
+    const resp = await fetch('{{ url_for("ai_conversation") }}', { method: 'POST', body: form });
+    const data = await resp.json();
+    if (data.success) location.reload();
+}
+
+async function sendMessage(e) {
+    e.preventDefault();
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    input.disabled = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    // Add user message to UI immediately
+    addMessageToUI('user', msg);
+
+    // Show typing indicator
+    const typingEl = document.createElement('div');
+    typingEl.className = 'conv-msg conv-msg-ai conv-typing';
+    typingEl.innerHTML = '<div class="conv-msg-avatar">AI</div><div class="conv-msg-text">Typing...</div>';
+    document.getElementById('chatMessages').appendChild(typingEl);
+    scrollToBottom();
+
+    const form = new FormData();
+    form.append('action', 'send');
+    form.append('message', msg);
+    const resp = await fetch('{{ url_for("ai_conversation") }}', { method: 'POST', body: form });
+    const data = await resp.json();
+
+    // Remove typing indicator
+    typingEl.remove();
+
+    if (data.success && data.messages) {
+        for (const m of data.messages) {
+            if (m.role === 'assistant') addMessageToUI('assistant', m.content);
+        }
+    } else {
+        addMessageToUI('assistant', 'Sorry, something went wrong. Try again.');
+    }
+    input.disabled = false;
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+}
+
+function addMessageToUI(role, text) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'conv-msg ' + (role === 'user' ? 'conv-msg-user' : 'conv-msg-ai');
+    const label = role === 'user' ? 'You' : 'AI';
+    div.innerHTML = '<div class="conv-msg-avatar">' + label + '</div><div class="conv-msg-text">' + escapeHtml(text) + '</div>';
+    container.appendChild(div);
+    scrollToBottom();
+}
+
+function scrollToBottom() {
+    const c = document.getElementById('chatMessages');
+    if (c) c.scrollTop = c.scrollHeight;
+}
+
+async function endConversation() {
+    const form = new FormData();
+    form.append('action', 'end');
+    await fetch('{{ url_for("ai_conversation") }}', { method: 'POST', body: form });
+    location.reload();
+}
+
+function escapeHtml(t) {
+    const d = document.createElement('div');
+    d.textContent = t;
+    return d.innerHTML;
+}
+</script>
+
+<style>
+.conv-topics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.conv-topic-card{background:var(--surface-lowest);border-radius:var(--radius);padding:24px;border:2px solid transparent;cursor:pointer;text-align:left;transition:.2s;display:flex;flex-direction:column;gap:8px;font-family:inherit}
+.conv-topic-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.conv-topic-icon{font-size:28px}
+.conv-topic-name{font-size:16px;font-weight:700}
+.conv-topic-desc{font-size:13px;color:var(--muted);line-height:1.4}
+
+.conv-chat-area{display:flex;flex-direction:column;height:calc(100vh - 180px);min-height:400px;max-height:700px;background:var(--surface-lowest);border-radius:var(--radius-lg);border:1px solid rgba(228,231,245,.6);overflow:hidden}
+.conv-header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--surface-low);background:var(--surface-low)}
+.conv-topic-badge{background:var(--primary-fixed);color:var(--primary);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+
+.conv-messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+.conv-msg{display:flex;gap:10px;max-width:80%}
+.conv-msg-user{align-self:flex-end;flex-direction:row-reverse}
+.conv-msg-ai{align-self:flex-start}
+.conv-msg-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
+.conv-msg-user .conv-msg-avatar{background:var(--primary);color:#fff}
+.conv-msg-ai .conv-msg-avatar{background:var(--tertiary-fixed);color:var(--tertiary)}
+.conv-msg-text{padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.6}
+.conv-msg-user .conv-msg-text{background:var(--primary);color:#fff;border-bottom-right-radius:4px}
+.conv-msg-ai .conv-msg-text{background:var(--surface-low);color:var(--on-surface);border-bottom-left-radius:4px}
+.conv-typing{opacity:.6}
+
+.conv-input-area{display:flex;gap:10px;padding:16px 24px;border-top:1px solid var(--surface-low);background:var(--surface-low)}
+.conv-input{flex:1;padding:12px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;outline:none;background:var(--surface-lowest);color:var(--on-surface)}
+.conv-input:focus{border-color:var(--primary)}
+.conv-send-btn{padding:12px 24px;flex-shrink:0}
+
+@media(max-width:768px){
+  .conv-topics-grid{grid-template-columns:1fr 1fr}
+  .conv-chat-area{height:calc(100vh - 160px);min-height:300px}
+}
+@media(max-width:480px){
+  .conv-topics-grid{grid-template-columns:1fr}
+  .conv-msg{max-width:90%}
+}
+</style>
+{% endblock %}

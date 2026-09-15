@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Welcome — Fluent X{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:680px">
+    <div class="card card-pad ob-card">
+        <div class="ob-steps" id="obDots"><span class="on"></span><span></span><span></span><span></span></div>
+
+        <!-- STEP 1 -->
+        <div class="ob-step" data-step="1">
+            <div style="font-size:40px">👋</div>
+            <h1>Welcome to Fluent X, {{ user['full_name'].split(' ')[0] }}!</h1>
+            <p style="color:var(--muted)">Let's set up your learning path in under a minute. You'll pick your level, set a daily goal, then take a short placement test.</p>
+            <button class="btn btn-primary btn-lg btn-block ob-next">Let's Go →</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('onboarding') }}" id="obForm" style="display:none">
+            <!-- STEP 2 -->
+            <div class="ob-step" data-step="2" style="display:none">
+                <h1>What's your current English level?</h1>
+                <p style="color:var(--muted)">Be honest — the placement test will fine-tune this.</p>
+                <div class="ob-opts">
+                    {% for lv in levels %}
+                    <label class="ob-opt"><input type="radio" name="level" value="{{ lv }}" {% if lv == saved_level %}checked{% endif %}><span>{{ lv }}</span></label>
+                    {% endfor %}
+                </div>
+                <div class="ob-nav"><button type="button" class="btn btn-ghost btn-md ob-back">← Back</button><button type="button" class="btn btn-primary btn-md ob-next">Continue →</button></div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="ob-step" data-step="3" style="display:none">
+                <h1>Daily practice goal</h1>
+                <p style="color:var(--muted)">Small daily habits beat long weekend sessions.</p>
+                <div class="ob-opts">
+                    {% for g in goals %}
+                    <label class="ob-opt"><input type="radio" name="daily_goal" value="{{ g }}" {% if g == saved_goal %}checked{% endif %}><span>{{ g }} minutes</span></label>
+                    {% endfor %}
+                </div>
+                <div class="ob-nav"><button type="button" class="btn btn-ghost btn-md ob-back">← Back</button><button type="button" class="btn btn-primary btn-md ob-next">Continue →</button></div>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="ob-step" data-step="4" style="display:none">
+                <div style="font-size:40px">📝</div>
+                <h1>Placement test</h1>
+                <p style="color:var(--muted)">A short 10-question test helps Fluent X understand your current English ability and recommend the right starting level. It takes about 3 minutes.</p>
+                <div class="ob-nav"><button type="button" class="btn btn-ghost btn-md ob-back">← Back</button><button type="submit" class="btn btn-primary btn-md">Save &amp; Start Test →</button></div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+(function(){
+  var step = 1, dots = document.querySelectorAll('#obDots span');
+  var form = document.getElementById('obForm');
+  function show(n){
+    step = n;
+    document.querySelectorAll('.ob-step').forEach(function(el){
+      el.style.display = (parseInt(el.dataset.step,10) === n) ? 'block' : 'none';
+    });
+    if (form) form.style.display = n === 1 ? 'none' : 'block';
+    dots.forEach(function(d,i){ d.classList.toggle('on', i < n); });
+    window.scrollTo(0,0);
+  }
+  document.querySelectorAll('.ob-next').forEach(function(b){
+    b.addEventListener('click', function(){
+      if (step === 2 && form && !form.querySelector('input[name="level"]:checked')) { alert('Please choose your level.'); return; }
+      if (step < 4) show(step+1);
+    });
+  });
+  document.querySelectorAll('.ob-back').forEach(function(b){ b.addEventListener('click', function(){ if (step > 1) show(step-1); }); });
+  show(1);
+})();
+</script>
+{% endblock %}

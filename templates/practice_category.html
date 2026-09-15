@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% set active_page = 'practice' %}
+{% block title %}{{ category }} Practice — Fluent X{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:760px">
+    <div class="crumbs"><a href="{{ url_for('practice') }}">Practice</a><span>›</span><b>{{ category }}</b></div>
+
+    {% if locked %}
+    <div class="card card-pad" style="text-align:center;margin-top:16px">
+        <div style="font-size:44px">🚧</div>
+        <h1>{{ category }} is Coming Soon</h1>
+        <p style="color:var(--muted)">Interactive {{ category|lower }} practice (with real exercises and scoring) arrives in a later phase. For now, train with Grammar, Vocabulary, and Reading.</p>
+        <a href="{{ url_for('practice') }}" class="btn btn-primary btn-md" style="margin-top:14px">← Back to Practice</a>
+    </div>
+    {% elif feedback %}
+    <div class="card card-pad" style="margin-top:16px; border:2px solid {% if feedback.is_correct %}var(--emerald){% else %}var(--error){% endif %}">
+        <span class="tag {% if feedback.is_correct %}tag-good{% else %}tag-bad{% endif %}">{% if feedback.is_correct %}✓ Correct{% else %}✗ Incorrect{% endif %}{% if feedback.already %} · already answered — no XP{% endif %}</span>
+        <h2 style="margin:12px 0">{{ feedback.question['question_text'] }}</h2>
+        <p>Your answer: <strong>{{ feedback.selected_text }}</strong></p>
+        {% if not feedback.is_correct %}<p>Correct answer: <strong style="color:var(--emerald)">{{ feedback.correct_text }}</strong></p>{% endif %}
+        <div class="example">💡 {{ feedback.explanation }}</div>
+        {% if feedback.xp_earned %}<p style="margin-top:10px;font-weight:800;color:var(--primary)">+{{ feedback.xp_earned }} XP earned</p>{% endif %}
+        {% if feedback.lesson_completed %}<p style="font-weight:800;color:var(--tertiary)">🎉 Lesson complete! +{{ feedback.lesson_bonus }} XP bonus</p>{% endif %}
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+            {% if next_q %}<a href="{{ url_for('practice_category', category=category|lower) }}" class="btn btn-primary btn-md">Continue →</a>
+            {% else %}<a href="{{ url_for('practice_category', category=category|lower) }}" class="btn btn-primary btn-md">See Results →</a>{% endif %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-ghost btn-md">Dashboard</a>
+        </div>
+    </div>
+    {% elif complete %}
+    <div class="card card-pad" style="text-align:center;margin-top:16px">
+        <div style="font-size:44px">🎉</div>
+        <h1>{{ category }} complete!</h1>
+        <p style="color:var(--muted)">You answered {{ summary['c'] }} of {{ summary['n'] }} correctly.</p>
+        <div style="font-size:30px;font-weight:800;color:var(--primary)">{{ (100 * summary['c'] / summary['n'])|round|int if summary['n'] else 0 }}%</div>
+        <div class="progress-track" style="margin:12px 0"><div class="progress-fill" style="width:{{ (100 * summary['c'] / summary['n'])|round|int if summary['n'] else 0 }}%"></div></div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+            <a href="{{ url_for('practice') }}" class="btn btn-primary btn-md">Try Another Category →</a>
+            <a href="{{ url_for('progress') }}" class="btn btn-ghost btn-md">View Progress</a>
+        </div>
+    </div>
+    {% elif question %}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:16px 0">
+        {% for lv in levels %}
+        <a href="{{ url_for('practice_category', category=category|lower, level=lv) }}" class="lvl-pill {% if level == lv %}on{% endif %}">{{ lv }}</a>
+        {% endfor %}
+    </div>
+    {% for l in lessons %}
+    {% if loop.first %}<p style="font-size:13px;color:var(--muted)">📘 {{ l['title'] }} · {{ l['level'] }}</p>{% endif %}
+    {% endfor %}
+    <div class="card card-pad" style="margin-top:10px">
+        <small style="font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">{{ category }} · {{ question['lesson_title'] }}</small>
+        <h2 style="margin:10px 0 14px">{{ question['question_text'] }}</h2>
+        <form method="POST" action="{{ url_for('practice_category', category=category|lower) }}{% if level %}?level={{ level }}{% endif %}">
+            <input type="hidden" name="question_id" value="{{ question['id'] }}">
+            {% for o in options %}
+            <label class="ob-opt"><input type="radio" name="option_id" value="{{ o['id'] }}" required><span>{{ o['option_text'] }}</span></label>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top:14px">Check Answer</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

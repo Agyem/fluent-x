@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Placement Test — Fluent X{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:760px">
+    {% if result %}
+    <div class="card card-pad" style="text-align:center">
+        <span class="tag tag-amber">Placement Result</span>
+        <h1 style="margin:12px 0 4px">You scored {{ result.score }} / {{ result.total }}</h1>
+        <p style="color:var(--muted)">Recommended starting level</p>
+        <div style="font-size:34px;font-weight:800;color:var(--primary);margin:8px 0">{{ result.level }}</div>
+        <p style="color:var(--muted);font-size:14px">Your level has been saved. Time to start learning!</p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg" style="margin-top:16px">Go to Dashboard →</a>
+    </div>
+    {% else %}
+    <div class="card card-pad">
+        <span class="tag tag-amber">Step 4 of 4 — Placement Test</span>
+        <h1 style="margin:10px 0 4px">{{ lesson['title'] }}</h1>
+        <p style="color:var(--muted)">{{ lesson['description'] }}</p>
+        <p style="font-size:13px;color:var(--muted)" id="pqCount"></p>
+    </div>
+    <form method="POST" action="{{ url_for('placement_test') }}">
+        {% for q in questions %}
+        <div class="card card-pad pq" style="margin-top:14px">
+            <small style="font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">Question {{ loop.index }} of {{ questions|length }}</small>
+            <h3 style="margin:8px 0 12px">{{ q['question_text'] }}</h3>
+            {% for o in options[q['id']] %}
+            <label class="ob-opt"><input type="radio" name="q_{{ q['id'] }}" value="{{ o['id'] }}"><span>{{ o['option_text'] }}</span></label>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top:18px">Submit Test</button>
+    </form>
+    <script>
+      (function(){
+        var total = {{ questions|length }}, el = document.getElementById('pqCount');
+        function upd(){
+          var n = document.querySelectorAll('.pq input:checked').length;
+          if (el) el.textContent = n + ' of ' + total + ' answered';
+        }
+        document.querySelectorAll('.pq input').forEach(function(i){ i.addEventListener('change', upd); });
+        upd();
+      })();
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

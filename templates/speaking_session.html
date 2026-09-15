@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Speaking Session — Fluent X{% endblock %}
+{% block content %}
+<div class="speaking-session-container">
+    <a href="{{ url_for('speak') }}" class="back-link">
+        <span class="back-arrow">←</span> Back to Speaking
+    </a>
+
+    <div class="session-header">
+        <div class="session-topic-badge">{{ category }}</div>
+        <h1 class="session-topic">{{ topic }}</h1>
+        <div class="session-meta">
+            <span class="mode-badge">{{ mode_label }}</span>
+            <span class="duration-badge">{{ duration }}s</span>
+        </div>
+    </div>
+
+    <div class="recording-area">
+        <div class="timer-display" id="timer">00:00</div>
+        <div class="progress-ring-container">
+            <svg class="progress-ring" viewBox="0 0 200 200">
+                <circle class="progress-ring-bg" cx="100" cy="100" r="90" />
+                <circle class="progress-ring-fill" id="progressRing" cx="100" cy="100" r="90" />
+            </svg>
+            <div class="recording-indicator" id="recordingIndicator">
+                <span class="mic-icon">🎙</span>
+            </div>
+        </div>
+        <p class="recording-status" id="recordingStatus">Ready to record</p>
+    </div>
+
+    <div class="session-controls">
+        <button class="btn btn-lg btn-primary" id="startBtn" onclick="toggleRecording()">
+            <span class="btn-icon">🎙</span> Start Recording
+        </button>
+        <button class="btn btn-lg btn-secondary" id="stopBtn" onclick="stopRecording()" style="display:none;">
+            <span class="btn-icon">⏹</span> Stop
+        </button>
+    </div>
+
+    <div class="session-actions" id="submitSection" style="display:none;">
+        <div class="xp-badge">
+            <span class="xp-icon">⭐</span> +10 XP earned for this session
+        </div>
+        <form method="POST" action="{{ url_for('speaking_submit') }}">
+            <input type="hidden" name="topic" value="{{ topic }}">
+            <input type="hidden" name="category" value="{{ category }}">
+            <input type="hidden" name="duration" id="durationField" value="{{ duration }}">
+            <div class="form-group" style="text-align:left;max-width:500px;margin:0 auto 16px;">
+                <label for="transcript">Transcript (what you said) — optional but needed for AI analysis</label>
+                <textarea name="transcript" id="transcript" rows="4" class="editor-textarea" style="min-height:100px;font-size:14px;" placeholder="Type or paste what you said during the recording..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-lg btn-primary">
+                <span class="btn-icon">📊</span> View Results
+            </button>
+        </form>
+        <a href="{{ url_for('speak') }}" class="btn btn-ghost">Choose Another Topic</a>
+    </div>
+
+    <div class="session-tips">
+        <h3>Speaking Tips</h3>
+        <ul>
+            <li>Speak naturally — don't rush or overthink.</li>
+            <li>Use transition words: "First of all…", "In addition…", "On the other hand…"</li>
+            <li>Aim to speak for the full duration.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+let mediaRecorder = null;
+let audioChunks = [];
+let startTime = 0;
+let timerInterval = null;
+let recording = false;
+
+const TIMER_EL = document.getElementById('timer');
+const STATUS_EL = document.getElementById('recordingStatus');
+const PROGRESS_RING = document.getElementById('progressRing');
+const START_BTN = document.getElementById('startBtn');
+const STOP_BTN = document.getElementById('stopBtn');
+const SUBMIT_SECTION = document.getElementById('submitSection');
+const DURATION_FIELD = document.getElementById('durationField');
+const TOTAL_DURATION = {{ duration }};
+const CIRCUMFERENCE = 2 * Math.PI * 90;
+PROGRESS_RING.style.strokeDasharray = CIRCUMFERENCE;
+PROGRESS_RING.style.strokeDasharrayOffset = CIRCUMFERENCE;
+
+function formatTime(secs) {
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+function updateProgress(elapsed) {
+    const progress = Math.min(elapsed / TOTAL_DURATION, 1);
+    PROGRESS_RING.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+    TIMER_EL.textContent = formatTime(elapsed);
+    DURATION_FIELD.value = elapsed;
+}
+
+async function toggleRecording() {
+    if (recording) {
+        stopRecording();
+        return;
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start();
+        recording = true;
+        startTime = Date.now();
+        START_BTN.style.display = 'none';
+        STOP_BTN.style.display = '';
+        STATUS_EL.textContent = 'Recording in progress...';
+        document.getElementById('recordingIndicator').classList.add('recording');
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            updateProgress(elapsed);
+            if (elapsed >= TOTAL_DURATION) {
+                stopRecording();
+            }
+        }, 1000);
+    } catch (err) {
+        STATUS_EL.textContent = 'Microphone access denied. Please allow access and try again.';
+    }
+}
+
+function stopRecording() {
+    if (!recording || !mediaRecorder) return;
+    mediaRecorder.stop();
+    recording = false;
+    clearInterval(timerInterval);
+    STOP_BTN.style.display = 'none';
+    START_BTN.style.display = '';
+    STATUS_EL.textContent = 'Recording complete! Review your results below.';
+    document.getElementById('recordingIndicator').classList.remove('recording');
+    SUBMIT_SECTION.style.display = '';
+}
+</script>
+{% endblock %}

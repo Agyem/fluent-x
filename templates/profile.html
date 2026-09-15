@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set active_page = 'profile' %}
+{% block title %}Profile — Fluent X{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:720px">
+    <div class="card card-pad" style="text-align:center">
+        <div class="avatar" style="width:72px;height:72px;font-size:28px;margin:0 auto 12px">{{ user['full_name'][0] }}</div>
+        <h1 style="font-size:24px">{{ user['full_name'] }}</h1>
+        <p style="color:var(--muted)">{{ user['email'] }} • Member since {{ user['created_at'][:10] }}</p>
+        <div class="metrics" style="margin-top:20px;grid-template-columns:1fr 1fr 1fr">
+            <div class="card metric"><div class="metric-top"><span>Level</span></div><div class="metric-value" style="font-size:20px">{{ user['level'] }}</div></div>
+            <div class="card metric"><div class="metric-top"><span>XP</span></div><div class="metric-value">{{ user['xp'] }}</div></div>
+            <div class="card metric"><div class="metric-top"><span>Streak</span></div><div class="metric-value">{{ user['streak'] }} <small>days</small></div></div>
+        </div>
+        <p style="margin:16px 0;color:var(--muted);font-size:14px">Practice sessions completed: <strong>{{ user['practice_sessions'] }}</strong></p>
+    </div>
+
+    <div class="card card-pad">
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:16px">Daily Goal</h2>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Set how many minutes you want to practice each day.</p>
+        <form method="POST" action="{{ url_for('profile') }}">
+            <div class="form-group">
+                <label for="daily_goal">Minutes per day</label>
+                <select id="daily_goal" name="daily_goal" style="max-width:200px;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font-size:14px;font-family:inherit;background:var(--surface-lowest);color:var(--on-surface)">
+                    {% for g in [5, 10, 15, 30] %}
+                    <option value="{{ g }}" {% if (user['daily_goal'] or 10) == g %}selected{% endif %}>{{ g }} minutes</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-md">Save Goal</button>
+        </form>
+    </div>
+
+    <div class="card card-pad" style="text-align:center">
+        <a href="{{ url_for('logout') }}" class="btn btn-outline btn-md btn-block">Logout</a>
+    </div>
+</div>
+{% endblock %}

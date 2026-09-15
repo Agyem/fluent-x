@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Writing Editor — Fluent X{% endblock %}
+{% block content %}
+<div class="write-editor-container">
+    <a href="{{ url_for('write') }}" class="back-link">
+        <span class="back-arrow">←</span> Back to Writing
+    </a>
+
+    {% if prompt %}
+    <div class="editor-prompt-box">
+        <span class="prompt-type-badge">{{ prompt.writing_type }}</span>
+        <h2 class="prompt-title">{{ prompt.title }}</h2>
+        <p class="prompt-text">{{ prompt.prompt }}</p>
+    </div>
+    {% endif %}
+
+    <div class="editor-wrapper">
+        <div class="editor-toolbar">
+            <div class="toolbar-left">
+                <span class="autosave-indicator" id="autosaveIndicator">
+                    <span class="save-dot"></span> Draft saved
+                </span>
+            </div>
+            <div class="toolbar-right">
+                <span class="word-count" id="wordCount">{{ attempt.word_count }}</span> words
+                <span class="char-count" id="charCount">0</span> chars
+            </div>
+        </div>
+
+        <form method="POST" id="editorForm">
+            <div class="editor-field">
+                <input type="text" name="title" class="editor-title-input" value="{{ attempt.title or '' }}" placeholder="Essay title…" id="titleInput">
+            </div>
+            <div class="editor-field">
+                <textarea name="content" class="editor-textarea" placeholder="Begin writing your essay here…" id="contentInput">{{ attempt.content or '' }}</textarea>
+            </div>
+            <div class="editor-actions">
+                <button type="submit" name="action" value="save" class="btn btn-secondary">
+                    <span class="btn-icon">💾</span> Save Draft
+                </button>
+                <button type="submit" name="action" value="submit" class="btn btn-primary" id="submitBtn">
+                    <span class="btn-icon">📤</span> Submit for Review
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="editor-tips">
+        <h3>Writing Tips</h3>
+        <ul>
+            <li>Structure: Introduction → Body paragraphs → Conclusion</li>
+            <li>Use linking words: "Furthermore…", "However…", "In conclusion…"</li>
+            <li>Each paragraph should have one clear main idea.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+const contentInput = document.getElementById('contentInput');
+const wordCountEl = document.getElementById('wordCount');
+const charCountEl = document.getElementById('charCount');
+let saveTimeout = null;
+
+function updateCounts() {
+    const text = contentInput.value.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    const chars = contentInput.value.length;
+    wordCountEl.textContent = words;
+    charCountEl.textContent = chars;
+}
+
+contentInput.addEventListener('input', function() {
+    updateCounts();
+    // Autosave after 2 seconds of inactivity
+    clearTimeout(saveTimeout);
+    const indicator = document.getElementById('autosaveIndicator');
+    indicator.textContent = 'Editing…';
+    saveTimeout = setTimeout(() => {
+        const form = document.getElementById('editorForm');
+        const fd = new FormData(form);
+        fd.set('action', 'save');
+        fetch(form.action, { method: 'POST', body: fd })
+            .then(() => { indicator.innerHTML = '<span class="save-dot"></span> Draft saved'; });
+    }, 2000);
+});
+
+updateCounts();
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Write — Fluent X{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+
+    <div class="dashboard-hero">
+        <div class="hero-inner">
+            <div class="hero-badge">
+                <span class="hero-icon">✍️</span>
+                <span>Writing Practice</span>
+            </div>
+            <h1 class="hero-title">Develop your formal essay writing skills</h1>
+            <p class="hero-subtitle">Write structured essays with clear arguments. Get feedback on content, organization, grammar, and coherence.</p>
+        </div>
+    </div>
+
+    <div class="dashboard-stats">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon"><span>✍️</span></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ write_stats.total }}</div>
+                <div class="stat-label">Essays</div>
+            </div>
+        </div>
+        <div class="stat-card stat-orange">
+            <div class="stat-icon"><span>📝</span></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ write_stats.total_words }}</div>
+                <div class="stat-label">Words Written</div>
+            </div>
+        </div>
+        <div class="stat-card stat-purple">
+            <div class="stat-icon"><span>📊</span></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ write_stats.avg_score or '—' }}</div>
+                <div class="stat-label">Avg Score</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <h2 class="section-title">Writing Prompts</h2>
+        <p class="section-subtitle">Choose a prompt to begin writing, or start a blank essay.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('write_new') }}" class="blank-essay-form">
+        <input type="hidden" name="prompt_id" value="">
+        <button type="submit" class="btn btn-secondary">
+            <span class="btn-icon">📄</span> Start Blank Essay
+        </button>
+    </form>
+
+    <div class="write-prompts-list">
+        {% for p in prompts %}
+        <div class="write-prompt-card">
+            <div class="prompt-header">
+                <span class="prompt-type">{{ p.writing_type }}</span>
+                <span class="prompt-difficulty">{{ p.difficulty }}</span>
+            </div>
+            <h3 class="prompt-title">{{ p.title }}</h3>
+            <p class="prompt-text">{{ p.prompt }}</p>
+            <form method="POST" action="{{ url_for('write_new') }}">
+                <input type="hidden" name="prompt_id" value="{{ p.id }}">
+                <button type="submit" class="btn btn-primary btn-sm">Write Essay</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if drafts %}
+    <div class="section-header">
+        <h2 class="section-title">Your Drafts</h2>
+    </div>
+    <div class="recent-list">
+        {% for d in drafts %}
+        <a href="{{ url_for('write_editor', attempt_id=d.id) }}" class="recent-item">
+            <div class="recent-icon">📄</div>
+            <div class="recent-info">
+                <div class="recent-title">{{ d.title or 'Untitled Essay' }}</div>
+                <div class="recent-meta">Draft · Updated {{ d.updated_at[:10] }} · {{ d.word_count }} words</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if submitted %}
+    <div class="section-header">
+        <h2 class="section-title">Submitted Essays</h2>
+        <a href="{{ url_for('write_history') }}" class="view-all-link">View All</a>
+    </div>
+    <div class="recent-list">
+        {% for s in submitted %}
+        <a href="{{ url_for('write_result', attempt_id=s.id) }}" class="recent-item">
+            <div class="recent-icon">📊</div>
+            <div class="recent-info">
+                <div class="recent-title">{{ s.title or 'Untitled Essay' }}</div>
+                <div class="recent-meta">
+                    {{ s.created_at[:10] }} · {{ s.word_count }} words
+                    {% if s.overall_score %} · Score: {{ s.overall_score }}/10{% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set active_page = 'practice' %}
+{% block title %}Practice — Fluent X{% endblock %}
+{% block content %}
+<div class="wrap">
+    <div class="section-head">
+        <div><h1 style="font-size:28px;font-weight:800">Choose your practice</h1><p>Pick a category and level. Questions come from your level wherever available.</p></div>
+    </div>
+    <div class="tracks">
+        {% for cat in categories %}
+        {% set s = stats[cat] %}
+        <div class="card track">
+            <div class="track-top">
+                <div class="track-ico {% if cat in functional %}peach{% else %}blue{% endif %}">
+                    {% if cat == 'Grammar' %}✍️{% elif cat == 'Vocabulary' %}📚{% elif cat == 'Reading' %}📰{% elif cat == 'Listening' %}🎧{% elif cat == 'Writing' %}📝{% else %}🗣️{% endif %}
+                </div>
+                {% if cat in functional %}
+                <span class="mastery">{{ s.answered }}/{{ s.total }} done</span>
+                {% else %}
+                <span class="mastery">Coming Soon</span>
+                {% endif %}
+            </div>
+            <div><h3>{{ cat }}</h3>
+                {% if cat in functional %}
+                <p class="desc">{{ s.correct }}/{{ s.answered }} correct · {{ s.accuracy }}% accuracy</p>
+                {% else %}
+                <p class="desc">Interactive {{ cat|lower }} practice arrives in a later phase.</p>
+                {% endif %}
+            </div>
+            {% if cat in functional %}
+            <div class="progress-track"><div class="progress-fill" style="width:{{ s.pct }}%"></div></div>
+            {% endif %}
+            <div class="track-foot"><span>{{ levels|length }} levels</span><a class="launch {% if cat not in functional %}light{% endif %}" href="{{ url_for('practice_category', category=cat|lower) }}">{% if cat in functional %}Practice ▸{% else %}Preview{% endif %}</a></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
