@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{{ genre|capitalize }} — Fluent X{% endblock %}
+{% block content %}
+<div class="passage-container">
+
+    <a href="{{ url_for('reading_hub') }}" class="back-link">
+        <span class="back-arrow">←</span> Back to Library
+    </a>
+
+    <div class="passage-header">
+        <div class="passage-meta">
+            <span class="passage-genre-badge">
+                {% if genre == 'story' %}📖 Story
+                {% elif genre == 'essay' %}📝 Essay
+                {% elif genre == 'article' %}📰 Article
+                {% else %}📚 Book Excerpt{% endif %}
+            </span>
+            <span class="passage-level-badge">{{ level }}</span>
+            <span class="passage-word-count">{{ word_count }} words</span>
+        </div>
+    </div>
+
+    <div class="passage-body">
+        {% for paragraph in passage.split('\n\n') %}
+            {% if paragraph.strip() %}
+            <p>{{ paragraph.strip() }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="passage-actions">
+        <button class="btn btn-primary" onclick="generateAnother()">
+            <span class="btn-icon">✨</span> Generate Another
+        </button>
+        <a href="{{ url_for('reading_hub') }}" class="btn btn-outline">Choose Different Options</a>
+    </div>
+
+</div>
+
+<script>
+function generateAnother() {
+    // Go back to hub and auto-generate with same settings
+    window.location.href = '{{ url_for("reading_hub") }}';
+}
+</script>
+
+<style>
+.passage-container{max-width:720px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:24px}
+.passage-header{text-align:center}
+.passage-meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.passage-genre-badge{background:var(--primary-fixed);color:var(--primary);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+.passage-level-badge{background:var(--tertiary-fixed);color:var(--tertiary);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+.passage-word-count{background:var(--surface-high);color:var(--on-variant);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+
+.passage-body{background:var(--surface-lowest);border-radius:var(--radius-lg);padding:40px 36px;border:1px solid rgba(228,231,245,.6);font-size:17px;line-height:2;color:var(--on-surface)}
+.passage-body p{margin-bottom:20px;text-indent:2em}
+.passage-body p:last-child{margin-bottom:0}
+
+.passage-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+@media(max-width:640px){
+  .passage-body{padding:24px 20px;font-size:16px;line-height:1.9}
+}
+</style>
+{% endblock %}

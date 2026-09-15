@@ -23,6 +23,7 @@
                     <a href="{{ url_for('dashboard') }}" class="pill-link {% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a>
                     <a href="{{ url_for('speak') }}" class="pill-link {% if active_page == 'speak' %}active{% endif %}">Speak</a>
                     <a href="{{ url_for('write') }}" class="pill-link {% if active_page == 'write' %}active{% endif %}">Write</a>
+                    <a href="{{ url_for('reading_hub') }}" class="pill-link {% if active_page == 'read' %}active{% endif %}">Read</a>
                     <a href="{{ url_for('ai_conversation') }}" class="pill-link {% if active_page == 'ai_conversation' %}active{% endif %}">AI Conversation</a>
                     <a href="{{ url_for('mistakes') }}" class="pill-link {% if active_page == 'mistakes' %}active{% endif %}">My Mistakes</a>
                     <a href="{{ url_for('progress') }}" class="pill-link {% if active_page == 'progress' %}active{% endif %}">Progress</a>
@@ -66,6 +67,7 @@
             <a href="{{ url_for('dashboard') }}">Dashboard</a>
             <a href="{{ url_for('speak') }}">Speak</a>
             <a href="{{ url_for('write') }}">Write</a>
+            <a href="{{ url_for('reading_hub') }}">Read</a>
             <a href="{{ url_for('ai_conversation') }}">AI Conversation</a>
             <a href="{{ url_for('mistakes') }}">My Mistakes</a>
             <a href="{{ url_for('progress') }}">Progress</a>

@@ -1299,6 +1299,123 @@ def ai_conversation():
                            current_topic=topic, started=started,
                            ai_available=is_ai_available())
 
+# --- AI Reading ---
+
+READING_GENRES = [
+    ('story', 'Story', 'Fictional short stories with vivid characters and plots'),
+    ('essay', 'Essay', 'Well-structured essays on interesting topics'),
+    ('article', 'Article', 'Informative articles on science, culture, and more'),
+    ('book_excerpt', 'Book Excerpt', 'Passages inspired by classic and modern literature'),
+]
+
+READING_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
+
+READING_SYSTEM_PROMPT = """You are an expert English reading content creator. Write engaging, well-written passages for English learners.
+
+Rules:
+- Write exactly {word_count} words (between {min_words} and {max_words})
+- Use clean, correct grammar throughout
+- Use vocabulary appropriate for {level} level
+- Make it interesting and engaging — the reader should want to keep reading
+- Use varied sentence structures
+- Include some advanced vocabulary with context clues so learners can figure out meanings
+- Do NOT include any headings, labels, or meta-text — just the passage itself
+- Do NOT use markdown formatting — just plain text paragraphs
+- Make it feel natural, like something from a real book, magazine, or article
+"""
+
+@app.route('/read')
+@login_required
+@onboarding_required
+def reading_hub():
+    user = get_user_by_id(session['user_id'])
+    return render_template('reading_hub.html', user=user, active_page='read',
+                           genres=READING_GENRES, levels=READING_LEVELS,
+                           ai_available=is_ai_available())
+
+@app.route('/read/generate', methods=['POST'])
+@login_required
+@onboarding_required
+def reading_generate():
+    user = get_user_by_id(session['user_id'])
+    genre = request.form.get('genre', 'story').strip()
+    level = request.form.get('level', 'Intermediate').strip()
+
+    if not is_ai_available():
+        return jsonify({'success': False, 'error': 'AI is not configured.'})
+
+    # Determine word count range based on level
+    if level == 'Beginner':
+        min_words, max_words, word_count = 250, 300, 280
+    elif level == 'Advanced':
+        min_words, max_words, word_count = 380, 450, 400
+    else:
+        min_words, max_words, word_count = 330, 400, 370
+
+    genre_names = {'story': 'short story', 'essay': 'essay', 'article': 'article', 'book_excerpt': 'book excerpt/literary passage'}
+    genre_name = genre_names.get(genre, 'passage')
+
+    prompt = f"Write a {level.lower()}-level {genre_name} of approximately {word_count} words ({min_words}-{max_words} words). Make it engaging and well-written with correct grammar."
+
+    messages_for_ai = [
+        {'role': 'system', 'content': READING_SYSTEM_PROMPT.format(
+            word_count=word_count, min_words=min_words, max_words=max_words, level=level)},
+        {'role': 'user', 'content': prompt},
+    ]
+
+    result = send_ai_request(messages_for_ai, temperature=0.8, max_tokens=2000)
+
+    if not result['success'] or not result['content']:
+        return jsonify({'success': False, 'error': result.get('error') or 'AI generation failed.'})
+
+    passage = result['content'].strip()
+    # Clean any <think> tags
+    import re
+    passage = re.sub(r'<think>.*?</think>', '', passage, flags=re.DOTALL).strip()
+    # Remove any markdown headers or formatting
+    passage = re.sub(r'^#+\s+', '', passage, flags=re.MULTILINE)
+    passage = passage.strip('"').strip("'")
+
+    word_count_actual = len(passage.split())
+
+    return jsonify({
+        'success': True,
+        'passage': passage,
+        'genre': genre,
+        'level': level,
+        'word_count': word_count_actual,
+    })
+
+@app.route('/read/show', methods=['POST'])
+@login_required
+@onboarding_required
+def reading_show():
+    passage = request.form.get('passage', '')
+    genre = request.form.get('genre', '')
+    level = request.form.get('level', '')
+    word_count = request.form.get('word_count', 0)
+    if not passage:
+        return redirect(url_for('reading_hub'))
+    session['reading_passage'] = passage
+    session['reading_genre'] = genre
+    session['reading_level'] = level
+    session['reading_word_count'] = int(word_count) if word_count else 0
+    return redirect(url_for('reading_passage'))
+
+@app.route('/read/passage')
+@login_required
+@onboarding_required
+def reading_passage():
+    user = get_user_by_id(session['user_id'])
+    passage = session.get('reading_passage', '')
+    genre = session.get('reading_genre', '')
+    level = session.get('reading_level', '')
+    word_count = session.get('reading_word_count', 0)
+    if not passage:
+        return redirect(url_for('reading_hub'))
+    return render_template('reading_passage.html', user=user, active_page='read',
+                           passage=passage, genre=genre, level=level, word_count=word_count)
+
 # --- Ensure DB on startup ---
 with app.app_context():
     init_db()

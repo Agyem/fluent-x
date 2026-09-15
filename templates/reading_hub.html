@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}Read — Fluent X{% endblock %}
+{% block content %}
+<div class="reading-container">
+
+    <div class="section-header">
+        <h1 class="section-title">AI Reading Library</h1>
+        <p class="section-subtitle">Read AI-generated passages to build vocabulary, comprehension, and fluency.</p>
+    </div>
+
+    {% if not ai_available %}
+    <div class="analysis-error">
+        <div class="error-icon">📚</div>
+        <h3>AI Not Configured</h3>
+        <p>Reading generation requires an AI provider. See <code>.env.example</code> for setup.</p>
+    </div>
+    {% else %}
+
+    <div class="reading-controls">
+        <div class="reading-section">
+            <h3 class="reading-label">Choose a Genre</h3>
+            <div class="genre-grid">
+                {% for g_id, g_name, g_desc in genres %}
+                <button class="genre-card {% if g_id == 'story' %}selected{% endif %}" onclick="selectGenre('{{ g_id }}', this)">
+                    <span class="genre-icon">
+                        {% if g_id == 'story' %}📖{% elif g_id == 'essay' %}📝{% elif g_id == 'article' %}📰{% else %}📚{% endif %}
+                    </span>
+                    <span class="genre-name">{{ g_name }}</span>
+                    <span class="genre-desc">{{ g_desc }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="reading-section">
+            <h3 class="reading-label">Difficulty Level</h3>
+            <div class="level-pills">
+                {% for level in levels %}
+                <button class="level-pill {% if level == 'Intermediate' %}selected{% endif %}" onclick="selectLevel('{{ level }}', this)">
+                    {{ level }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg" onclick="generatePassage()" id="generateBtn">
+            <span class="btn-icon">✨</span> Generate Passage
+        </button>
+    </div>
+
+    <div id="loadingState" class="analysis-loading" style="display:none;">
+        <div class="loading-spinner"></div>
+        <h3>Generating your passage...</h3>
+        <p>The AI is writing a custom passage for you. This takes a moment.</p>
+    </div>
+
+    {% endif %}
+
+</div>
+
+<script>
+let selectedGenre = 'story';
+let selectedLevel = 'Intermediate';
+
+function selectGenre(genre, el) {
+    selectedGenre = genre;
+    document.querySelectorAll('.genre-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function selectLevel(level, el) {
+    selectedLevel = level;
+    document.querySelectorAll('.level-pill').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+async function generatePassage() {
+    const btn = document.getElementById('generateBtn');
+    const loading = document.getElementById('loadingState');
+    btn.disabled = true;
+    btn.style.display = 'none';
+    loading.style.display = '';
+
+    const form = new FormData();
+    form.append('genre', selectedGenre);
+    form.append('level', selectedLevel);
+
+    try {
+        const resp = await fetch('{{ url_for("reading_generate") }}', { method: 'POST', body: form });
+        const data = await resp.json();
+
+        if (data.success && data.passage) {
+            // Submit passage to show route
+            const showForm = document.createElement('form');
+            showForm.method = 'POST';
+            showForm.action = '{{ url_for("reading_show") }}';
+
+            const pInput = document.createElement('input');
+            pInput.type = 'hidden'; pInput.name = 'passage'; pInput.value = data.passage;
+            showForm.appendChild(pInput);
+
+            const gInput = document.createElement('input');
+            gInput.type = 'hidden'; gInput.name = 'genre'; gInput.value = data.genre;
+            showForm.appendChild(gInput);
+
+            const lInput = document.createElement('input');
+            lInput.type = 'hidden'; lInput.name = 'level'; lInput.value = data.level;
+            showForm.appendChild(lInput);
+
+            const wInput = document.createElement('input');
+            wInput.type = 'hidden'; wInput.name = 'word_count'; wInput.value = data.word_count;
+            showForm.appendChild(wInput);
+
+            document.body.appendChild(showForm);
+            showForm.submit();
+        } else {
+            loading.style.display = 'none';
+            btn.disabled = false;
+            btn.style.display = '';
+            alert(data.error || 'Failed to generate passage. Try again.');
+        }
+    } catch (e) {
+        loading.style.display = 'none';
+        btn.disabled = false;
+        btn.style.display = '';
+        alert('Network error. Please try again.');
+    }
+}
+</script>
+
+<style>
+.reading-container{max-width:800px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:32px}
+.reading-controls{display:flex;flex-direction:column;gap:24px}
+.reading-section{display:flex;flex-direction:column;gap:12px}
+.reading-label{font-size:16px;font-weight:700}
+
+.genre-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.genre-card{background:var(--surface-lowest);border-radius:var(--radius);padding:20px;border:2px solid transparent;cursor:pointer;text-align:left;transition:.2s;display:flex;flex-direction:column;gap:6px;font-family:inherit}
+.genre-card:hover{border-color:var(--primary);transform:translateY(-1px);box-shadow:var(--shadow)}
+.genre-card.selected{border-color:var(--primary);background:var(--primary-fixed)}
+.genre-icon{font-size:24px}
+.genre-name{font-size:15px;font-weight:700}
+.genre-desc{font-size:12px;color:var(--muted);line-height:1.4}
+
+.level-pills{display:flex;gap:10px}
+.level-pill{padding:10px 20px;border-radius:999px;font-size:14px;font-weight:600;border:2px solid var(--border);cursor:pointer;transition:.15s;background:var(--surface-lowest);font-family:inherit}
+.level-pill:hover{border-color:var(--primary)}
+.level-pill.selected{border-color:var(--primary);background:var(--primary-fixed);color:var(--primary)}
+
+@media(max-width:480px){
+  .genre-grid{grid-template-columns:1fr}
+  .level-pills{flex-wrap:wrap}
+}
+</style>
+{% endblock %}
