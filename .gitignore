@@ -6,3 +6,4 @@ uploads/
 *.pyo
 .vscode/
 .idea/
+dbcheck.py
