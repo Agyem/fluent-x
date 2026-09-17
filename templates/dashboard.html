@@ -15,30 +15,6 @@
         </div>
     </div>
 
-    <div class="dashboard-stats">
-        <div class="stat-card stat-streak">
-            <div class="stat-icon"><span>🔥</span></div>
-            <div class="stat-info">
-                <div class="stat-value">{{ user['streak'] }}</div>
-                <div class="stat-label">Day Streak</div>
-            </div>
-        </div>
-        <div class="stat-card stat-orange">
-            <div class="stat-icon"><span>⚡</span></div>
-            <div class="stat-info">
-                <div class="stat-value">{{ user['xp'] }}</div>
-                <div class="stat-label">XP Earned</div>
-            </div>
-        </div>
-        <div class="stat-card stat-blue">
-            <div class="stat-icon"><span>🎯</span></div>
-            <div class="stat-info">
-                <div class="stat-value">{{ qs.accuracy }}%</div>
-                <div class="stat-label">Accuracy</div>
-            </div>
-        </div>
-    </div>
-
     <div class="dashboard-actions-grid">
         <a href="{{ url_for('write') }}" class="action-card write-action">
             <div class="action-icon">✍️</div>

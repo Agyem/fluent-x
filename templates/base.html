@@ -28,33 +28,14 @@
                     <a href="{{ url_for('dashboard') }}" class="pill-link {% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a>
                     <a href="{{ url_for('write') }}" class="pill-link {% if active_page == 'write' %}active{% endif %}">Write</a>
                     <a href="{{ url_for('reading_hub') }}" class="pill-link {% if active_page == 'read' %}active{% endif %}">Read</a>
-                    <a href="{{ url_for('ai_conversation') }}" class="pill-link {% if active_page == 'ai_conversation' %}active{% endif %}">AI Conversation</a>
-                    <a href="{{ url_for('mistakes') }}" class="pill-link {% if active_page == 'mistakes' %}active{% endif %}">My Mistakes</a>
-                    <a href="{{ url_for('progress') }}" class="pill-link {% if active_page == 'progress' %}active{% endif %}">Progress</a>
-                    <a href="{{ url_for('profile') }}" class="pill-link {% if active_page == 'profile' %}active{% endif %}">Profile</a>
+                    <a href="{{ url_for('ai_conversation') }}" class="pill-link {% if active_page == 'ai_conversation' %}active{% endif %}">AI Chat</a>
                 </nav>
                 {% endif %}
             </div>
             <div class="topbar-right">
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
                 {% if session.user_id %}
-                <div class="stat-pills">
-                    <span class="stat-pill streak">🔥 {{ user_streak|default(0) }} Days</span>
-                    <span class="stat-pill xp">⚡ {{ user_xp|default(0) }} XP</span>
-                    <span class="stat-pill mins">⏱ {{ user_minutes|default('0/20 min') }}</span>
-                </div>
-                <div class="user-chip">
-                    <span class="level-badge">{{ user_level|default('Beginner') }}</span>
-                    <a href="{{ url_for('profile') }}" class="avatar" title="{{ session.user_name }}">{{ (session.user_name or 'U')[0] }}</a>
-                    <div class="user-menu-wrap">
-                        <button class="menu-btn" id="userMenuBtn" aria-label="Menu">▾</button>
-                        <div class="user-menu" id="userMenu">
-                            <a href="{{ url_for('dashboard') }}">Dashboard</a>
-                            <a href="{{ url_for('profile') }}">Profile</a>
-                            <a href="{{ url_for('logout') }}">Logout</a>
-                        </div>
-                    </div>
-                </div>
+                <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm">Logout</a>
                 {% else %}
                 <div class="auth-links">
                     <a href="{{ url_for('login') }}" class="nav-link">Login</a>
@@ -74,7 +55,6 @@
             <a href="{{ url_for('ai_conversation') }}">AI Conversation</a>
             <a href="{{ url_for('mistakes') }}">My Mistakes</a>
             <a href="{{ url_for('progress') }}">Progress</a>
-            <a href="{{ url_for('profile') }}">Profile</a>
             <a href="{{ url_for('logout') }}">Logout</a>
         </div>
         {% endif %}

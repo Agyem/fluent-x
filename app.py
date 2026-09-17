@@ -900,7 +900,6 @@ def progress():
 def dashboard():
     user = get_user_by_id(session['user_id'])
     ws = writing_stats(user['id'])
-    qs = overall_stats(user['id'])
     db = get_db()
     recent = []
     for r in db.execute("SELECT * FROM writing_attempts WHERE user_id = ? AND status = 'submitted' ORDER BY created_at DESC LIMIT 3", (user['id'],)).fetchall():
@@ -908,7 +907,7 @@ def dashboard():
     recent.sort(key=lambda x: x['date'], reverse=True)
     top_mistake = db.execute('SELECT description, count FROM mistakes WHERE user_id = ? ORDER BY count DESC LIMIT 1', (user['id'],)).fetchone()
     return render_template('dashboard.html', user=user, active_page='dashboard',
-                           ws=ws, qs=qs, recent=recent[:5],
+                           ws=ws, recent=recent[:5],
                            top_mistake=top_mistake, ai_available=is_ai_available())
 
 # ===== PRACTICE (legacy quiz system, kept) =====
