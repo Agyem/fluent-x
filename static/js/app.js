@@ -15,10 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const burger = document.getElementById('hamburger');
   const mobileNav = document.getElementById('mobileNav');
   if (burger && mobileNav) {
-    burger.addEventListener('click', () => mobileNav.classList.toggle('open'));
-    // Close mobile nav on link click
+    burger.addEventListener('click', () => {
+      burger.classList.toggle('open');
+      mobileNav.classList.toggle('open');
+    });
     mobileNav.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => mobileNav.classList.remove('open'));
+      link.addEventListener('click', () => {
+        burger.classList.remove('open');
+        mobileNav.classList.remove('open');
+      });
     });
   }
 
