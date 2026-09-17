@@ -1349,11 +1349,15 @@ def reading_hub():
 @onboarding_required
 def reading_generate():
     user = get_user_by_id(session['user_id'])
-    genre = request.form.get('genre', 'story').strip()
+    genre = request.form.get('genre', 'article').strip()
     level = request.form.get('level', 'Intermediate').strip()
+    topic = request.form.get('topic', '').strip()
 
     if not is_ai_available():
         return jsonify({'success': False, 'error': 'AI is not configured.'})
+
+    if not topic:
+        return jsonify({'success': False, 'error': 'Please enter a topic.'})
 
     # Determine word count range based on level
     if level == 'Beginner':
@@ -1364,9 +1368,9 @@ def reading_generate():
         min_words, max_words, word_count = 330, 400, 370
 
     genre_names = {'story': 'short story', 'essay': 'essay', 'article': 'article', 'book_excerpt': 'book excerpt/literary passage'}
-    genre_name = genre_names.get(genre, 'passage')
+    genre_name = genre_names.get(genre, 'article')
 
-    prompt = f"Write a {level.lower()}-level {genre_name} of approximately {word_count} words ({min_words}-{max_words} words). Make it engaging and well-written with correct grammar."
+    prompt = f"Write a {level.lower()}-level {genre_name} about \"{topic}\" of approximately {word_count} words ({min_words}-{max_words} words). Make it engaging and well-written with correct grammar."
 
     messages_for_ai = [
         {'role': 'system', 'content': READING_SYSTEM_PROMPT.format(
@@ -1380,10 +1384,8 @@ def reading_generate():
         return jsonify({'success': False, 'error': result.get('error') or 'AI generation failed.'})
 
     passage = result['content'].strip()
-    # Clean any <think> tags
     import re
     passage = re.sub(r'<think>.*?</think>', '', passage, flags=re.DOTALL).strip()
-    # Remove any markdown headers or formatting
     passage = re.sub(r'^#+\s+', '', passage, flags=re.MULTILINE)
     passage = passage.strip('"').strip("'")
 
@@ -1395,6 +1397,7 @@ def reading_generate():
         'genre': genre,
         'level': level,
         'word_count': word_count_actual,
+        'topic': topic,
     })
 
 @app.route('/read/show', methods=['POST'])
@@ -1405,12 +1408,14 @@ def reading_show():
     genre = request.form.get('genre', '')
     level = request.form.get('level', '')
     word_count = request.form.get('word_count', 0)
+    topic = request.form.get('topic', '')
     if not passage:
         return redirect(url_for('reading_hub'))
     session['reading_passage'] = passage
     session['reading_genre'] = genre
     session['reading_level'] = level
     session['reading_word_count'] = int(word_count) if word_count else 0
+    session['reading_topic'] = topic
     return redirect(url_for('reading_passage'))
 
 @app.route('/read/passage')
@@ -1422,10 +1427,11 @@ def reading_passage():
     genre = session.get('reading_genre', '')
     level = session.get('reading_level', '')
     word_count = session.get('reading_word_count', 0)
+    topic = session.get('reading_topic', '')
     if not passage:
         return redirect(url_for('reading_hub'))
     return render_template('reading_passage.html', user=user, active_page='read',
-                           passage=passage, genre=genre, level=level, word_count=word_count)
+                           passage=passage, genre=genre, level=level, word_count=word_count, topic=topic)
 
 # --- Ensure DB on startup ---
 with app.app_context():

@@ -17,11 +17,28 @@
     {% else %}
 
     <div class="reading-controls">
+
+        <div class="reading-section topic-section">
+            <h3 class="reading-label">What do you want to read about?</h3>
+            <p class="section-subtitle" style="margin-top:-8px">Type any topic — AI will write a passage about it to help you practice English.</p>
+            <div class="topic-input-wrap">
+                <input type="text" id="topicInput" class="topic-input" placeholder="e.g. space exploration, cooking, history of music..." maxlength="120" />
+            </div>
+            <div class="topic-suggestions">
+                <span class="topic-chip" onclick="pickTopic('space exploration')">🚀 space exploration</span>
+                <span class="topic-chip" onclick="pickTopic('cooking around the world')">🍳 cooking</span>
+                <span class="topic-chip" onclick="pickTopic('climate change')">🌍 climate change</span>
+                <span class="topic-chip" onclick="pickTopic('artificial intelligence')">🤖 artificial intelligence</span>
+                <span class="topic-chip" onclick="pickTopic('ancient civilizations')">🏛️ ancient history</span>
+                <span class="topic-chip" onclick="pickTopic('music and emotions')">🎵 music</span>
+            </div>
+        </div>
+
         <div class="reading-section">
-            <h3 class="reading-label">Choose a Genre</h3>
+            <h3 class="reading-label">Genre</h3>
             <div class="genre-grid">
                 {% for g_id, g_name, g_desc in genres %}
-                <button class="genre-card {% if g_id == 'story' %}selected{% endif %}" onclick="selectGenre('{{ g_id }}', this)">
+                <button class="genre-card {% if g_id == 'article' %}selected{% endif %}" onclick="selectGenre('{{ g_id }}', this)">
                     <span class="genre-icon">
                         {% if g_id == 'story' %}📖{% elif g_id == 'essay' %}📝{% elif g_id == 'article' %}📰{% else %}📚{% endif %}
                     </span>
@@ -59,7 +76,7 @@
 </div>
 
 <script>
-let selectedGenre = 'story';
+let selectedGenre = 'article';
 let selectedLevel = 'Intermediate';
 
 function selectGenre(genre, el) {
@@ -74,9 +91,23 @@ function selectLevel(level, el) {
     el.classList.add('selected');
 }
 
+function pickTopic(topic) {
+    document.getElementById('topicInput').value = topic;
+    document.getElementById('topicInput').focus();
+}
+
 async function generatePassage() {
     const btn = document.getElementById('generateBtn');
     const loading = document.getElementById('loadingState');
+    const topic = document.getElementById('topicInput').value.trim();
+
+    if (!topic) {
+        document.getElementById('topicInput').focus();
+        document.getElementById('topicInput').style.borderColor = 'var(--error)';
+        setTimeout(() => { document.getElementById('topicInput').style.borderColor = ''; }, 2000);
+        return;
+    }
+
     btn.disabled = true;
     btn.style.display = 'none';
     loading.style.display = '';
@@ -84,32 +115,29 @@ async function generatePassage() {
     const form = new FormData();
     form.append('genre', selectedGenre);
     form.append('level', selectedLevel);
+    form.append('topic', topic);
 
     try {
         const resp = await fetch('{{ url_for("reading_generate") }}', { method: 'POST', body: form });
         const data = await resp.json();
 
         if (data.success && data.passage) {
-            // Submit passage to show route
             const showForm = document.createElement('form');
             showForm.method = 'POST';
             showForm.action = '{{ url_for("reading_show") }}';
 
-            const pInput = document.createElement('input');
-            pInput.type = 'hidden'; pInput.name = 'passage'; pInput.value = data.passage;
-            showForm.appendChild(pInput);
-
-            const gInput = document.createElement('input');
-            gInput.type = 'hidden'; gInput.name = 'genre'; gInput.value = data.genre;
-            showForm.appendChild(gInput);
-
-            const lInput = document.createElement('input');
-            lInput.type = 'hidden'; lInput.name = 'level'; lInput.value = data.level;
-            showForm.appendChild(lInput);
-
-            const wInput = document.createElement('input');
-            wInput.type = 'hidden'; wInput.name = 'word_count'; wInput.value = data.word_count;
-            showForm.appendChild(wInput);
+            const fields = {
+                passage: data.passage,
+                genre: data.genre,
+                level: data.level,
+                word_count: data.word_count,
+                topic: data.topic || topic
+            };
+            for (const [name, value] of Object.entries(fields)) {
+                const input = document.createElement('input');
+                input.type = 'hidden'; input.name = name; input.value = value;
+                showForm.appendChild(input);
+            }
 
             document.body.appendChild(showForm);
             showForm.submit();
@@ -134,6 +162,15 @@ async function generatePassage() {
 .reading-section{display:flex;flex-direction:column;gap:12px}
 .reading-label{font-size:16px;font-weight:700}
 
+.topic-section{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px}
+.topic-input-wrap{display:flex;gap:8px}
+.topic-input{flex:1;padding:14px 18px;border:2px solid var(--border-color);border-radius:12px;font-size:15px;font-family:inherit;background:var(--bg-canvas);color:var(--text-primary);outline:none;transition:.15s}
+.topic-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+.topic-input::placeholder{color:var(--muted)}
+.topic-suggestions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.topic-chip{padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500;border:1px solid var(--border-color);background:var(--bg-canvas);color:var(--text-muted);cursor:pointer;transition:.15s;white-space:nowrap}
+.topic-chip:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-fixed)}
+
 .genre-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .genre-card{background:var(--surface-lowest);border-radius:var(--radius);padding:20px;border:2px solid transparent;cursor:pointer;text-align:left;transition:.2s;display:flex;flex-direction:column;gap:6px;font-family:inherit}
 .genre-card:hover{border-color:var(--primary);transform:translateY(-1px);box-shadow:var(--shadow)}
@@ -150,6 +187,8 @@ async function generatePassage() {
 @media(max-width:480px){
   .genre-grid{grid-template-columns:1fr}
   .level-pills{flex-wrap:wrap}
+  .topic-suggestions{gap:6px}
+  .topic-chip{font-size:12px;padding:5px 10px}
 }
 </style>
 {% endblock %}

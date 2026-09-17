@@ -8,6 +8,9 @@
     </a>
 
     <div class="passage-header">
+        {% if topic %}
+        <h1 class="passage-topic-title">{{ topic }}</h1>
+        {% endif %}
         <div class="passage-meta">
             <span class="passage-genre-badge">
                 {% if genre == 'story' %}📖 Story
@@ -47,12 +50,13 @@ function generateAnother() {
 <style>
 .passage-container{max-width:720px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:24px}
 .passage-header{text-align:center}
+.passage-topic-title{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px;line-height:1.3}
 .passage-meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .passage-genre-badge{background:var(--primary-fixed);color:var(--primary);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
 .passage-level-badge{background:var(--tertiary-fixed);color:var(--tertiary);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
 .passage-word-count{background:var(--surface-high);color:var(--on-variant);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
 
-.passage-body{background:var(--surface-lowest);border-radius:var(--radius-lg);padding:40px 36px;border:1px solid rgba(228,231,245,.6);font-size:17px;line-height:2;color:var(--on-surface)}
+.passage-body{background:var(--bg-surface);border-radius:var(--radius-lg);padding:40px 36px;border:1px solid var(--border-color);font-size:17px;line-height:2;color:var(--text-primary)}
 .passage-body p{margin-bottom:20px;text-indent:2em}
 .passage-body p:last-child{margin-bottom:0}
 
