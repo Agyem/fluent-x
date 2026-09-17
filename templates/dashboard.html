@@ -11,7 +11,7 @@
                 <span>{{ user['level'] }}</span>
             </div>
             <h1 class="hero-title">Welcome back, {{ user['full_name'].split(' ')[0] }}</h1>
-            <p class="hero-subtitle">You're building real fluency through speaking and writing practice. Keep going.</p>
+            <p class="hero-subtitle">You're building real fluency through writing and reading practice. Keep going.</p>
         </div>
     </div>
 
@@ -40,13 +40,6 @@
     </div>
 
     <div class="dashboard-actions-grid">
-        <a href="{{ url_for('speak') }}" class="action-card speak-action">
-            <div class="action-icon">🎤</div>
-            <h3 class="action-title">Start Speaking</h3>
-            <p class="action-desc">Choose a topic and record a timed speaking session</p>
-            <span class="action-stat">{{ ss.total }} sessions · {{ ss.total_minutes }} min total</span>
-            <span class="action-arrow">→</span>
-        </a>
         <a href="{{ url_for('write') }}" class="action-card write-action">
             <div class="action-icon">✍️</div>
             <h3 class="action-title">Start Writing</h3>
@@ -57,8 +50,15 @@
         <a href="{{ url_for('reading_hub') }}" class="action-card">
             <div class="action-icon">📚</div>
             <h3 class="action-title">Read</h3>
-            <p class="action-desc">AI-generated stories, essays, and articles to build fluency</p>
+            <p class="action-desc">AI-generated stories, essays, and articles on any topic</p>
             <span class="action-stat">Customizable length and difficulty</span>
+            <span class="action-arrow">→</span>
+        </a>
+        <a href="{{ url_for('ai_conversation') }}" class="action-card">
+            <div class="action-icon">💬</div>
+            <h3 class="action-title">AI Conversation</h3>
+            <p class="action-desc">Practice real conversations with an AI tutor</p>
+            <span class="action-stat">Topic-based or free chat</span>
             <span class="action-arrow">→</span>
         </a>
     </div>
@@ -81,7 +81,7 @@
         <div class="insight-icon">📊</div>
         <div class="insight-content">
             <h3 class="insight-title">Build Your Insights</h3>
-            <p class="insight-text">Complete speaking and writing sessions to start receiving personalized insights about your progress and common mistakes.</p>
+            <p class="insight-text">Complete writing sessions and AI conversations to start receiving personalized insights about your progress and common mistakes.</p>
         </div>
     </div>
     {% endif %}
@@ -91,7 +91,7 @@
         <div class="ai-status-icon">🤖</div>
         <div class="ai-status-content">
             <h3 class="ai-status-title">AI Analysis</h3>
-            <p class="ai-status-text">AI-powered feedback is not configured yet. Configure an AI provider in <code>.env</code> to receive detailed analysis of your speaking and writing.</p>
+            <p class="ai-status-text">AI-powered feedback is not configured yet. Configure an AI provider in <code>.env</code> to receive detailed analysis of your writing.</p>
         </div>
     </div>
     {% endif %}
@@ -129,7 +129,7 @@
     <div class="recent-list">
         {% for r in recent %}
         <div class="recent-item">
-            <div class="recent-icon">{% if r.type == 'speaking' %}🎤{% else %}✍️{% endif %}</div>
+            <div class="recent-icon">✍️</div>
             <div class="recent-info">
                 <div class="recent-title">{{ r.title }}</div>
                 <div class="recent-meta">
@@ -142,13 +142,13 @@
     </div>
     {% else %}
     <div class="empty-state-small">
-        <p>Complete your first speaking or writing session to see activity here.</p>
+        <p>Complete your first writing session to see activity here.</p>
     </div>
     {% endif %}
 
     <div class="section-header">
         <h2 class="section-title">Practice Tracks</h2>
-        <p class="section-subtitle">Supplementary skills to reinforce your speaking and writing.</p>
+        <p class="section-subtitle">Supplementary skills to reinforce your writing and reading.</p>
     </div>
     <div class="practice-tracks">
         {% for cat, icon, desc in [('Grammar','📝','Sentence structure and rules'),('Vocabulary','📚','Word knowledge and usage'),('Reading','📰','Comprehension practice')] %}

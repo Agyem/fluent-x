@@ -6,56 +6,10 @@
 
     <div class="section-header">
         <h1 class="section-title">Your Progress</h1>
-        <p class="section-subtitle">Track your speaking, writing, and practice improvement over time.</p>
+        <p class="section-subtitle">Track your writing and practice improvement over time.</p>
     </div>
 
     <div class="progress-primary">
-        <div class="progress-card speaking-card">
-            <div class="progress-card-header">
-                <span class="progress-card-icon">🎤</span>
-                <h3 class="progress-card-title">Speaking</h3>
-            </div>
-            <div class="progress-card-stats">
-                <div class="pc-stat">
-                    <div class="pc-value">{{ ss.total }}</div>
-                    <div class="pc-label">Sessions</div>
-                </div>
-                <div class="pc-stat">
-                    <div class="pc-value">{{ ss.total_minutes }}</div>
-                    <div class="pc-label">Minutes</div>
-                </div>
-                <div class="pc-stat">
-                    <div class="pc-value">{{ ss.avg_score or '—' }}</div>
-                    <div class="pc-label">Avg Score</div>
-                </div>
-            </div>
-
-            {# Speaking trends — only show if AI data exists #}
-            {% if ss.avg_score and ss.avg_score > 0 %}
-            <div class="progress-trends">
-                <h4>Speaking Insights</h4>
-                <p class="trend-note">AI-powered trend data will appear here once enough analyzed sessions are available.</p>
-            </div>
-            {% else %}
-            <div class="progress-trends empty-trend">
-                <p>Complete speaking sessions with AI analysis enabled to see fluency, grammar, and clarity trends here.</p>
-            </div>
-            {% endif %}
-
-            {% if recent_speaking %}
-            <div class="progress-recent">
-                <h4>Recent Sessions</h4>
-                {% for r in recent_speaking %}
-                <div class="pr-item">
-                    <span class="pr-topic">{{ r.topic[:40] }}{% if r.topic|length > 40 %}...{% endif %}</span>
-                    <span class="pr-date">{{ r.created_at[:10] }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            <a href="{{ url_for('speak') }}" class="btn btn-primary btn-sm btn-block">Practice Speaking</a>
-        </div>
-
         <div class="progress-card writing-card">
             <div class="progress-card-header">
                 <span class="progress-card-icon">✍️</span>
@@ -140,13 +94,6 @@
         {% endfor %}
         <div class="category-progress-item">
             <div class="cat-prog-header">
-                <span class="cat-prog-name">Speaking</span>
-                <span class="cat-prog-stat">{{ ss.total }} sessions · {{ ss.total_minutes }} min</span>
-            </div>
-            <div class="progress-track"><div class="progress-fill" style="width:{{ [ss.total * 10, 100]|min }}%"></div></div>
-        </div>
-        <div class="category-progress-item">
-            <div class="cat-prog-header">
                 <span class="cat-prog-name">Writing</span>
                 <span class="cat-prog-stat">{{ ws.submitted }} essays · {{ ws.total_words }} words</span>
             </div>
@@ -161,7 +108,7 @@
         <div class="ai-status-icon">📈</div>
         <div class="ai-status-content">
             <h3 class="ai-status-title">AI Progress Tracking</h3>
-            <p class="ai-status-text">When AI analysis is configured, you'll see detailed trend charts for speaking fluency, grammar, vocabulary, clarity, and writing organization, coherence, and sentence quality over time.</p>
+            <p class="ai-status-text">When AI analysis is configured, you'll see detailed trend charts for grammar, vocabulary, writing organization, coherence, and sentence quality over time.</p>
         </div>
     </div>
     {% endif %}

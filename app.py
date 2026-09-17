@@ -12,7 +12,6 @@ from flask import Flask, abort, g, redirect, render_template, request, session, 
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from services.ai_service import parse_analysis_json, serialize_analysis_json, is_ai_available, send_ai_request
-from services.speaking_analyzer import analyze_speaking, extract_mistakes_from_speaking
 from services.writing_analyzer import analyze_writing, extract_mistakes_from_writing
 
 logger = logging.getLogger(__name__)
@@ -29,15 +28,10 @@ LEVELS = ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advan
 DAILY_GOALS = [5, 10, 15, 30]
 XP_CORRECT = 10
 XP_LESSON_BONUS = 25
-XP_SPEAKING = 10
-XP_SPEAKING_COMPLETE = 15
 XP_ESSAY_SUBMIT = 20
 XP_ESSAY_COMPLETE = 25
 
 PLACEMENT_LEVELS = [(3, 'Beginner'), (5, 'Elementary'), (7, 'Intermediate'), (9, 'Upper Intermediate'), (10, 'Advanced')]
-SPEAK_CATEGORIES = ['University', 'Technology', 'Society', 'Career', 'Business', 'Daily Life', 'Current Issues', 'Personal Experience']
-SPEAK_MODES = {'quick': 60, 'standard': 120, 'extended': 180}
-SPEAK_MODE_LABELS = {'quick': 'Quick Talk — 1 min', 'standard': 'Standard Talk — 2 min', 'extended': 'Extended Talk — 3 min'}
 WRITE_TYPES = ['Argumentative', 'Discursive', 'Descriptive', 'Narrative', 'Expository', 'Formal Letter', 'Report', 'Article', 'Speech', 'Free Writing']
 
 def level_for_score(score):
@@ -373,12 +367,6 @@ def today_activity_count(user_id):
     c3 = db.execute("SELECT COUNT(*) FROM writing_attempts WHERE user_id = ? AND date(updated_at) = date('now', 'localtime')", (user_id,)).fetchone()[0]
     return c1 + c2 + c3
 
-def speaking_stats(user_id):
-    db = get_db()
-    total = db.execute('SELECT COUNT(*) FROM speaking_attempts WHERE user_id = ?', (user_id,)).fetchone()[0]
-    row = db.execute('SELECT COALESCE(SUM(duration_seconds),0) AS secs, COALESCE(AVG(overall_score),0) AS avg_score FROM speaking_attempts WHERE user_id = ?', (user_id,)).fetchone()
-    return {'total': total, 'total_minutes': round(row['secs'] / 60, 1), 'avg_score': round(row['avg_score'])}
-
 def writing_stats(user_id):
     db = get_db()
     total = db.execute('SELECT COUNT(*) FROM writing_attempts WHERE user_id = ?', (user_id,)).fetchone()[0]
@@ -398,10 +386,8 @@ def category_stats(user_id):
         stats[cat] = {'total': total, 'answered': row['n'], 'correct': row['c'],
                       'pct': round(100 * row['n'] / total) if total else 0,
                       'accuracy': round(100 * row['c'] / row['n']) if row['n'] else 0}
-    # Add speaking + writing to stats
-    ss = speaking_stats(user_id)
+    # Add writing to stats
     ws = writing_stats(user_id)
-    stats['Speaking'] = {'total': '-', 'answered': ss['total'], 'correct': '-', 'pct': 0, 'accuracy': ss['avg_score']}
     stats['Writing'] = {'total': '-', 'answered': ws['submitted'], 'correct': '-', 'pct': 0, 'accuracy': ws['avg_score']}
     stats['Listening'] = {'total': 0, 'answered': 0, 'correct': 0, 'pct': 0, 'accuracy': 0}
     return stats
@@ -468,70 +454,6 @@ def record_answer(user_id, question_id, option_id):
             'explanation': q['explanation'], 'lesson_completed': lesson_completed, 'lesson_bonus': lesson_bonus}
 
 # --- AI Analysis helpers ---
-
-def _run_speaking_analysis(attempt_id, transcript, topic, category, duration):
-    """
-    Run AI analysis on a speaking attempt and save results to the database.
-    Called after submission or retry. Handles the full lifecycle:
-    set processing -> call AI -> save results or save error.
-    """
-    db = get_db()
-    try:
-        # Set status to processing
-        db.execute("UPDATE speaking_attempts SET analysis_status = 'processing', analysis_error = '' WHERE id = ?", (attempt_id,))
-        db.commit()
-
-        # Run analysis
-        context = {'duration': duration} if duration else None
-        result = analyze_speaking(transcript, topic=topic, category=category, context=context)
-
-        if result.get('success'):
-            # Save successful analysis
-            analysis_json = serialize_analysis_json(result)
-            db.execute('''UPDATE speaking_attempts SET
-                analysis_status = 'analyzed',
-                analysis_json = ?,
-                overall_score = ?,
-                fluency_score = ?,
-                grammar_score = ?,
-                vocabulary_score = ?,
-                clarity_score = ?,
-                analyzed_at = ?
-                WHERE id = ?''',
-                (analysis_json,
-                 result.get('overall_score'),
-                 result.get('fluency_score'),
-                 result.get('grammar_score'),
-                 result.get('vocabulary_score'),
-                 result.get('clarity_score'),
-                 now_str(),
-                 attempt_id))
-
-            # Extract and save mistakes
-            mistakes = extract_mistakes_from_speaking(result, attempt_id=attempt_id)
-            for m in mistakes:
-                _upsert_mistake(db, session['user_id'], m)
-
-            db.commit()
-        else:
-            # Save error status
-            error_msg = result.get('message', 'Analysis failed.')
-            db.execute('''UPDATE speaking_attempts SET
-                analysis_status = 'failed',
-                analysis_error = ?
-                WHERE id = ?''', (error_msg, attempt_id))
-            db.commit()
-
-    except Exception as e:
-        logger.exception('Error during speaking analysis for attempt %d', attempt_id)
-        try:
-            db.execute('''UPDATE speaking_attempts SET
-                analysis_status = 'failed',
-                analysis_error = ?
-                WHERE id = ?''', (f'Internal error: {str(e)[:200]}', attempt_id))
-            db.commit()
-        except Exception:
-            pass
 
 
 def _run_writing_analysis(attempt_id, content, writing_type, prompt_text):
@@ -754,139 +676,6 @@ def placement_test():
 
 # ===== SPEAKING =====
 
-@app.route('/speak')
-@login_required
-@onboarding_required
-def speak():
-    user = get_user_by_id(session['user_id'])
-    db = get_db()
-    recent = db.execute('SELECT * FROM speaking_attempts WHERE user_id = ? ORDER BY created_at DESC LIMIT 5', (user['id'],)).fetchall()
-    return render_template('speak.html', user=user, active_page='speak',
-                           categories=SPEAK_CATEGORIES, modes=SPEAK_MODES, mode_labels=SPEAK_MODE_LABELS,
-                           recent=recent, speak_stats=speaking_stats(user['id']))
-
-@app.route('/speak/<category>/<mode>', methods=['GET', 'POST'])
-@login_required
-@onboarding_required
-def speaking_session(category, mode):
-    category = category.replace('-', ' ')
-    if category not in SPEAK_CATEGORIES or mode not in SPEAK_MODES:
-        abort(404)
-    user = get_user_by_id(session['user_id'])
-    db = get_db()
-    # Get a prompt from the topic or generate one
-    prompts = {
-        'University': 'Should university students be allowed to use AI when completing assignments? State your position clearly.',
-        'Technology': 'Has technology made us more connected or more isolated? Discuss with examples.',
-        'Society': 'Is the gap between rich and poor growing in your country? Explain your view.',
-        'Career': 'Is it better to specialise early or keep your options open? Discuss.',
-        'Business': 'Should companies prioritise profit or social responsibility? Give your opinion.',
-        'Daily Life': 'How has your daily routine changed in the last five years? Describe the changes.',
-        'Current Issues': 'What is the most pressing challenge facing your generation today?',
-        'Personal Experience': 'Describe a moment that changed how you see the world.',
-    }
-    topic = prompts.get(category, 'Speak freely on this topic for the given duration.')
-    duration = SPEAK_MODES[mode]
-    return render_template('speaking_session.html', user=user, active_page='speak',
-                           category=category, mode=mode, topic=topic, duration=duration,
-                           mode_label=SPEAK_MODE_LABELS[mode])
-
-@app.route('/speak/submit', methods=['POST'])
-@login_required
-@onboarding_required
-def speaking_submit():
-    user = get_user_by_id(session['user_id'])
-    db = get_db()
-    topic = request.form.get('topic', '').strip()
-    category = request.form.get('category', '').strip()
-    transcript = request.form.get('transcript', '').strip()
-    try:
-        duration = int(request.form.get('duration', 0))
-    except (ValueError, TypeError):
-        duration = 0
-    if not topic or not category:
-        flash('Invalid submission.', 'error')
-        return redirect(url_for('speak'))
-
-    # Determine initial analysis status
-    analysis_status = 'not_analyzed'
-    if is_ai_available() and transcript:
-        analysis_status = 'processing'
-    elif is_ai_available() and not transcript:
-        analysis_status = 'not_analyzed'
-
-    db.execute('''INSERT INTO speaking_attempts
-        (user_id, topic, category, duration_seconds, audio_path, transcript,
-         analysis_status, analysis_error, analyzed_at, analysis_json, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-               (user['id'], topic, category, duration, '', transcript,
-                analysis_status, '', '', '', now_str()))
-    # Award XP
-    db.execute('UPDATE users SET xp = xp + ?, practice_sessions = practice_sessions + 1 WHERE id = ?', (XP_SPEAKING, user['id']))
-    streak = compute_streak(user['id'])
-    db.execute('UPDATE users SET streak = ? WHERE id = ?', (streak, user['id']))
-    db.commit()
-    attempt_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
-
-    # Run AI analysis if transcript available and AI configured
-    if is_ai_available() and transcript:
-        _run_speaking_analysis(attempt_id, transcript, topic, category, duration)
-
-    attempt = db.execute('SELECT * FROM speaking_attempts WHERE id = ?', (attempt_id,)).fetchone()
-    ai_analysis = parse_analysis_json(attempt['analysis_json']) if attempt['analysis_json'] else None
-    return render_template('speak_result.html', user=get_user_by_id(user['id']), active_page='speak',
-                           attempt=attempt, xp=XP_SPEAKING, ai_analysis=ai_analysis,
-                           ai_available=is_ai_available())
-
-@app.route('/speak/<int:attempt_id>')
-@login_required
-@onboarding_required
-def speak_result(attempt_id):
-    user = get_user_by_id(session['user_id'])
-    db = get_db()
-    attempt = db.execute('SELECT * FROM speaking_attempts WHERE id = ? AND user_id = ?', (attempt_id, user['id'])).fetchone()
-    if attempt is None:
-        flash('Attempt not found.', 'error')
-        return redirect(url_for('speak'))
-    # Parse analysis JSON from database
-    ai_analysis = parse_analysis_json(attempt['analysis_json']) if attempt['analysis_json'] else None
-    return render_template('speak_result.html', user=user, active_page='speak',
-                           attempt=attempt, xp=0, ai_analysis=ai_analysis,
-                           ai_available=is_ai_available())
-
-@app.route('/speak/history')
-@login_required
-@onboarding_required
-def speak_history():
-    user = get_user_by_id(session['user_id'])
-    db = get_db()
-    attempts = db.execute('SELECT * FROM speaking_attempts WHERE user_id = ? ORDER BY created_at DESC', (user['id'],)).fetchall()
-    return render_template('speak_history.html', user=user, active_page='speak', attempts=attempts, speak_stats=speaking_stats(user['id']))
-
-@app.route('/speak/<int:attempt_id>/retry', methods=['POST'])
-@login_required
-@onboarding_required
-def speak_retry(attempt_id):
-    user = get_user_by_id(session['user_id'])
-    db = get_db()
-    attempt = db.execute('SELECT * FROM speaking_attempts WHERE id = ? AND user_id = ?', (attempt_id, user['id'])).fetchone()
-    if attempt is None:
-        flash('Attempt not found.', 'error')
-        return redirect(url_for('speak'))
-
-    if not is_ai_available():
-        flash('AI analysis is not configured.', 'error')
-        return redirect(url_for('speak_result', attempt_id=attempt_id))
-
-    if not attempt['transcript'] or not attempt['transcript'].strip():
-        flash('No transcript available for analysis. Only attempts with transcripts can be analyzed.', 'error')
-        return redirect(url_for('speak_result', attempt_id=attempt_id))
-
-    # Run analysis
-    _run_speaking_analysis(attempt_id, attempt['transcript'], attempt['topic'], attempt['category'], attempt['duration_seconds'])
-
-    flash('Analysis complete.', 'success')
-    return redirect(url_for('speak_result', attempt_id=attempt_id))
 
 # ===== WRITING =====
 
@@ -1092,16 +881,14 @@ def mistakes():
 @onboarding_required
 def progress():
     user = get_user_by_id(session['user_id'])
-    ss = speaking_stats(user['id'])
     ws = writing_stats(user['id'])
     qs = overall_stats(user['id'])
     stats = category_stats(user['id'])
     db = get_db()
-    recent_speaking = db.execute('SELECT * FROM speaking_attempts WHERE user_id = ? ORDER BY created_at DESC LIMIT 5', (user['id'],)).fetchall()
     recent_writing = db.execute('SELECT * FROM writing_attempts WHERE user_id = ? AND status = ? ORDER BY created_at DESC LIMIT 5', (user['id'], 'submitted')).fetchall()
     mistakes_count = db.execute('SELECT COUNT(*) FROM mistakes WHERE user_id = ?', (user['id'],)).fetchone()[0]
     return render_template('progress.html', user=user, active_page='progress',
-                           ss=ss, ws=ws, qs=qs, stats=stats, recent_speaking=recent_speaking,
+                           ws=ws, qs=qs, stats=stats,
                            recent_writing=recent_writing, mistakes_count=mistakes_count,
                            ai_available=is_ai_available())
 
@@ -1112,19 +899,16 @@ def progress():
 @onboarding_required
 def dashboard():
     user = get_user_by_id(session['user_id'])
-    ss = speaking_stats(user['id'])
     ws = writing_stats(user['id'])
     qs = overall_stats(user['id'])
     db = get_db()
     recent = []
-    for r in db.execute('SELECT * FROM speaking_attempts WHERE user_id = ? ORDER BY created_at DESC LIMIT 3', (user['id'],)).fetchall():
-        recent.append({'type': 'speaking', 'title': r['topic'][:60], 'date': r['created_at'][:10], 'score': r['overall_score']})
     for r in db.execute("SELECT * FROM writing_attempts WHERE user_id = ? AND status = 'submitted' ORDER BY created_at DESC LIMIT 3", (user['id'],)).fetchall():
         recent.append({'type': 'writing', 'title': (r['title'] or 'Untitled')[:60], 'date': r['created_at'][:10], 'score': r['overall_score']})
     recent.sort(key=lambda x: x['date'], reverse=True)
     top_mistake = db.execute('SELECT description, count FROM mistakes WHERE user_id = ? ORDER BY count DESC LIMIT 1', (user['id'],)).fetchone()
     return render_template('dashboard.html', user=user, active_page='dashboard',
-                           ss=ss, ws=ws, qs=qs, recent=recent[:5],
+                           ws=ws, qs=qs, recent=recent[:5],
                            top_mistake=top_mistake, ai_available=is_ai_available())
 
 # ===== PRACTICE (legacy quiz system, kept) =====
