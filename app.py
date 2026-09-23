@@ -114,19 +114,6 @@ def init_db():
         pronunciation TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL)''')
 
     # --- Phase 3 tables ---
-    db.execute('''CREATE TABLE IF NOT EXISTS speaking_attempts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        topic TEXT NOT NULL, category TEXT NOT NULL DEFAULT '',
-        duration_seconds INTEGER NOT NULL DEFAULT 0,
-        audio_path TEXT NOT NULL DEFAULT '',
-        transcript TEXT NOT NULL DEFAULT '',
-        fluency_score INTEGER DEFAULT NULL, grammar_score INTEGER DEFAULT NULL,
-        vocabulary_score INTEGER DEFAULT NULL, clarity_score INTEGER DEFAULT NULL,
-        pronunciation_score INTEGER DEFAULT NULL, confidence_score INTEGER DEFAULT NULL,
-        overall_score INTEGER DEFAULT NULL,
-        created_at TEXT NOT NULL)''')
-
     db.execute('''CREATE TABLE IF NOT EXISTS writing_prompts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL, prompt TEXT NOT NULL,
@@ -153,16 +140,6 @@ def init_db():
         created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''')
 
     # --- Phase 4 safe migrations: AI analysis columns ---
-    sa_cols = [c[1] for c in db.execute('PRAGMA table_info(speaking_attempts)')]
-    if 'analysis_status' not in sa_cols:
-        db.execute("ALTER TABLE speaking_attempts ADD COLUMN analysis_status TEXT NOT NULL DEFAULT 'not_analyzed'")
-    if 'analysis_error' not in sa_cols:
-        db.execute("ALTER TABLE speaking_attempts ADD COLUMN analysis_error TEXT NOT NULL DEFAULT ''")
-    if 'analyzed_at' not in sa_cols:
-        db.execute("ALTER TABLE speaking_attempts ADD COLUMN analyzed_at TEXT NOT NULL DEFAULT ''")
-    if 'analysis_json' not in sa_cols:
-        db.execute("ALTER TABLE speaking_attempts ADD COLUMN analysis_json TEXT NOT NULL DEFAULT ''")
-
     wa_cols = [c[1] for c in db.execute('PRAGMA table_info(writing_attempts)')]
     if 'analysis_status' not in wa_cols:
         db.execute("ALTER TABLE writing_attempts ADD COLUMN analysis_status TEXT NOT NULL DEFAULT 'not_analyzed'")
@@ -342,9 +319,9 @@ def validate_registration(full_name, email, password, confirm):
 
 def compute_streak(user_id):
     db = get_db()
-    # Check answers, speaking attempts, and writing attempts
+    # Check answers and writing attempts
     all_dates = []
-    for table, col in [('user_answers', 'answered_at'), ('speaking_attempts', 'created_at'), ('writing_attempts', 'updated_at')]:
+    for table, col in [('user_answers', 'answered_at'), ('writing_attempts', 'updated_at')]:
         rows = db.execute(f"SELECT DISTINCT date({col}) AS d FROM {table} WHERE user_id = ?", (user_id,)).fetchall()
         all_dates.extend([r['d'] for r in rows])
     all_dates = sorted(set(all_dates), reverse=True)
@@ -362,10 +339,13 @@ def compute_streak(user_id):
 
 def today_activity_count(user_id):
     db = get_db()
-    c1 = db.execute("SELECT COUNT(*) FROM user_answers WHERE user_id = ? AND date(answered_at) = date('now', 'localtime')", (user_id,)).fetchone()[0]
-    c2 = db.execute("SELECT COUNT(*) FROM speaking_attempts WHERE user_id = ? AND date(created_at) = date('now', 'localtime')", (user_id,)).fetchone()[0]
-    c3 = db.execute("SELECT COUNT(*) FROM writing_attempts WHERE user_id = ? AND date(updated_at) = date('now', 'localtime')", (user_id,)).fetchone()[0]
-    return c1 + c2 + c3
+    from datetime import datetime, timedelta
+    today = datetime.now().date()
+    today_str = today.isoformat()
+    yesterday_str = (today - timedelta(days=1)).isoformat()
+    c1 = db.execute("SELECT COUNT(*) FROM user_answers WHERE user_id = ? AND (date(answered_at) = ? OR date(answered_at) = ?)", (user_id, today_str, yesterday_str)).fetchone()[0]
+    c3 = db.execute("SELECT COUNT(*) FROM writing_attempts WHERE user_id = ? AND (date(updated_at) = ? OR date(updated_at) = ?)", (user_id, today_str, yesterday_str)).fetchone()[0]
+    return c1 + c3
 
 def writing_stats(user_id):
     db = get_db()
@@ -644,9 +624,9 @@ def onboarding():
             return render_template('onboarding.html', levels=LEVELS, goals=DAILY_GOALS, saved_level=user['level'], saved_goal=user['daily_goal'] or 10, active_page=None, user=user)
         if goal not in DAILY_GOALS: goal = 10
         db = get_db()
-        db.execute('UPDATE users SET level = ?, daily_goal = ? WHERE id = ?', (level, goal, user['id']))
+        db.execute('UPDATE users SET level = ?, daily_goal = ?, onboarding_completed = 1 WHERE id = ?', (level, goal, user['id']))
         db.commit()
-        return redirect(url_for('placement_test'))
+        return redirect(url_for('dashboard'))
     return render_template('onboarding.html', levels=LEVELS, goals=DAILY_GOALS, saved_level=user['level'], saved_goal=user['daily_goal'] or 10, active_page=None, user=user)
 
 @app.route('/placement-test', methods=['GET', 'POST'])
